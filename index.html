@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมสร้างที่อยู่ลับ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .mono-font {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        .result-box {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid #374151;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
+                โปรแกรมสร้างที่อยู่ลับ
+            </h1>
+            <p class="text-gray-400 text-lg">
+                เครื่องมือสร้างที่อยู่และเบอร์โทรศัพท์แบบสุ่มและพรางตัว
+            </p>
+        </div>
+
+        <!-- Result Display -->
+        <div class="result-box rounded-xl p-6 mb-6">
+            <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-x-auto"></pre>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="generateBtn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                สร้างใหม่ 🎲
+            </button>
+            <button id="copyBtn" class="btn-secondary text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                คัดลอก 📋
+            </button>
+        </div>
+
+        <!-- Status Message -->
+        <div id="statusMessage" class="text-center mt-4 text-sm text-gray-500"></div>
+    </div>
+
+    <script>
+        // Core data - DO NOT MODIFY CONTENT
+        const CORE_ADDRESS = {
+            soi: "ลาดกระบัง16",
+            village: "หมู่บ้านไทยสมุทร2",
+            houseNumber: "62/37",
+            road: "ลาดกระบัง",
+            subdistrict: "ราชาเทวะ",
+            district: "บางพลี",
+            province: "สมุทรปราการ",
+            postalCode: "10540"
+        };
+        
+        const CORE_PHONE = "0961408164";
+
+        // Obfuscation utilities
+        const ObfuscationUtils = {
+            // Convert to Thai numerals
+            toThaiNumerals: (str) => {
+                const thaiNums = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+                return str.replace(/[0-9]/g, (digit) => thaiNums[parseInt(digit)]);
+            },
+
+            // Convert to full-width characters
+            toFullWidth: (str) => {
+                return str.replace(/[!-~]/g, (char) => {
+                    return String.fromCharCode(char.charCodeAt(0) + 0xFEE0);
+                });
+            },
+
+            // Add zero-width spaces randomly
+            addZeroWidthSpaces: (str) => {
+                if (Math.random() < 0.3) return str; // 30% chance to apply
+                return str.split('').join('\u200B');
+            },
+
+            // Add random emoji
+            addRandomEmoji: () => {
+                const emojis = ['🏠', '📍', '🚪', '🏘️', '📫', '🔔', '🧭', '📞', '📦', '🇹🇭', '➡️'];
+                return Math.random() < 0.4 ? emojis[Math.floor(Math.random() * emojis.length)] + ' ' : '';
+            },
+
+            // Random number formatting
+            formatNumber: (num) => {
+                const formats = [
+                    num,
+                    num.replace(/(\d+)\/(\d+)/, '$1-$2'),
+                    num.replace(/(\d+)\/(\d+)/, '$1 / $2'),
+                    num.replace(/(\d+)\/(\d+)/, '($1) $2'),
+                    this.toThaiNumerals(num),
+                    this.toFullWidth(num)
+                ];
+                return formats[Math.floor(Math.random() * formats.length)];
+            },
+
+            // Random phone formatting
+            formatPhone: (phone) => {
+                const formats = [
+                    phone,
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1.$2.$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'),
+                    this.toThaiNumerals(phone),
+                    this.toFullWidth(phone)
+                ];
+                return formats[Math.floor(Math.random() * formats.length)];
+            }
+        };
+
+        // Label variations
+        const Labels = {
+            soi: ['ซ.', 'ซอย', 'Soi', ''],
+            village: ['หมู่บ้าน', 'หมู่บ้าน:', 'Village', ''],
+            house: ['บ้านเลขที่', 'เลขที่', 'บ้าน', 'House No.', 'No.', ''],
+            road: ['ถ.', 'ถนน', 'Road', 'Rd.', ''],
+            subdistrict: ['ต.', 'ตำบล', 'T.', 'Sub-district', ''],
+            district: ['อ.', 'อำเภอ', 'A.', 'District', ''],
+            province: ['จ.', 'จังหวัด', 'Province', ''],
+            phone: ['โทร', 'Tel', 'Phone', 'เบอร์', 'ติดต่อ', '📞', '']
+        };
+
+        // Symbols for labels
+        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' → '];
+
+        // Generate random address
+        function generateRandomAddress() {
+            const result = [];
+            const usedComponents = [];
+            
+            // Randomly decide number of lines (2-5)
+            const numLines = Math.floor(Math.random() * 4) + 2;
+            
+            // Create component pool
+            const components = [
+                {
+                    type: 'soi',
+                    value: CORE_ADDRESS.soi,
+                    label: Labels.soi[Math.floor(Math.random() * Labels.soi.length)]
+                },
+                {
+                    type: 'village',
+                    value: CORE_ADDRESS.village,
+                    label: Labels.village[Math.floor(Math.random() * Labels.village.length)]
+                },
+                {
+                    type: 'house',
+                    value: ObfuscationUtils.formatNumber(CORE_ADDRESS.houseNumber),
+                    label: Labels.house[Math.floor(Math.random() * Labels.house.length)]
+                },
+                {
+                    type: 'road',
+                    value: CORE_ADDRESS.road,
+                    label: Labels.road[Math.floor(Math.random() * Labels.road.length)]
+                },
+                {
+                    type: 'subdistrict',
+                    value: CORE_ADDRESS.subdistrict,
+                    label: Labels.subdistrict[Math.floor(Math.random() * Labels.subdistrict.length)]
+                },
+                {
+                    type: 'district',
+                    value: CORE_ADDRESS.district,
+                    label: Labels.district[Math.floor(Math.random() * Labels.district.length)]
+                },
+                {
+                    type: 'province',
+                    value: CORE_ADDRESS.province,
+                    label: Labels.province[Math.floor(Math.random() * Labels.province.length)]
+                },
+                {
+                    type: 'postal',
+                    value: Math.random() < 0.5 ? CORE_ADDRESS.postalCode : ObfuscationUtils.toThaiNumerals(CORE_ADDRESS.postalCode),
+                    label: Math.random() < 0.5 ? '' : 'รหัสไปรษณีย์'
+                },
+                {
+                    type: 'phone',
+                    value: ObfuscationUtils.formatPhone(CORE_PHONE),
+                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)]
+                }
+            ];
+
+            // Shuffle components
+            const shuffled = [...components].sort(() => Math.random() - 0.5);
+            
+            // Group components into lines
+            const linesData = [];
+            let currentLine = [];
+            
+            for (let i = 0; i < shuffled.length && linesData.length < numLines; i++) {
+                currentLine.push(shuffled[i]);
+                
+                if (currentLine.length >= Math.ceil(shuffled.length / numLines) || 
+                    (Math.random() < 0.4 && currentLine.length > 0)) {
+                    linesData.push([...currentLine]);
+                    currentLine = [];
+                }
+            }
+            
+            if (currentLine.length > 0) {
+                if (linesData.length > 0) {
+                    linesData[linesData.length - 1].push(...currentLine);
+                } else {
+                    linesData.push(currentLine);
+                }
+            }
+
+            // Format each line
+            for (const lineComponents of linesData) {
+                let line = '';
+                
+                for (let i = 0; i < lineComponents.length; i++) {
+                    const comp = lineComponents[i];
+                    const emoji = ObfuscationUtils.addRandomEmoji();
+                    const symbol = Math.random() < 0.3 ? Symbols[Math.floor(Math.random() * Symbols.length)] : ' ';
+                    const spacing = Math.random() < 0.3 ? '  ' : ' ';
+                    
+                    let formatted = '';
+                    if (comp.label) {
+                        formatted = `${emoji}${comp.label}${symbol}${comp.value}`;
+                    } else {
+                        formatted = `${emoji}${comp.value}`;
+                    }
+                    
+                    // Apply zero-width space obfuscation
+                    formatted = ObfuscationUtils.addZeroWidthSpaces(formatted);
+                    
+                    line += formatted;
+                    if (i < lineComponents.length - 1) {
+                        line += Math.random() < 0.5 ? spacing : ', ';
+                    }
+                }
+                
+                result.push(line.trim());
+            }
+
+            // 20-30% chance to wrap in composite phrase
+            if (Math.random() < 0.25) {
+                const phrases = [
+                    `กรุณาส่งพัสดุมาที่:\n${result.join('\n')}\nขอบคุณครับ/ค่ะ`,
+                    `ข้อมูลผู้รับพัสดุ:\n${result.join('\n')}`,
+                    `ที่อยู่สำหรับจัดส่ง:\n${result.join('\n')}`,
+                    `📦 ที่อยู่จัดส่ง 📦\n${result.join('\n')}`,
+                    `🏠 ข้อมูลที่อยู่ 🏠\n${result.join('\n')}`
+                ];
+                return phrases[Math.floor(Math.random() * phrases.length)];
+            }
+
+            return result.join('\n');
+        }
+
+        // Copy to clipboard function
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `text-center mt-4 text-sm ${type === 'success' ? 'text-green-400' : 'text-gray-500'}`;
+            
+            setTimeout(() => {
+                statusEl.textContent = '';
+            }, 3000);
+        }
+
+        // Generate and display new address
+        function generateNew() {
+            const resultEl = document.getElementById('resultDisplay');
+            const newAddress = generateRandomAddress();
+            
+            resultEl.classList.remove('fade-in');
+            setTimeout(() => {
+                resultEl.textContent = newAddress;
+                resultEl.classList.add('fade-in');
+            }, 100);
+            
+            showStatus('สร้างที่อยู่ใหม่แล้ว! 🎲');
+        }
+
+        // Event listeners
+        document.getElementById('generateBtn').addEventListener('click', generateNew);
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = document.getElementById('resultDisplay').textContent;
+            copyToClipboard(text);
+        });
+
+        // Generate initial address on page load
+        document.addEventListener('DOMContentLoaded', generateNew);
+    </script>
+</body>
+</html>
