@@ -5,19 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>โปรแกรมสร้างที่อยู่ลับ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         .mono-font {
             font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        .thai-font {
+            font-family: 'Sarabun', 'Noto Sans Thai', sans-serif;
         }
         .result-box {
             background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             border: 1px solid #374151;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
         .btn-primary {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
@@ -33,6 +54,24 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
+        .btn-accent {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
@@ -40,33 +79,140 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            border: 1px solid #4b5563;
+        }
+        .typing-effect {
+            border-right: 2px solid #3b82f6;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { border-color: transparent; }
+            51%, 100% { border-color: #3b82f6; }
+        }
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.1;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+<body class="bg-gray-900 text-gray-100 min-h-screen thai-font">
+    <!-- Matrix Background Effect -->
+    <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+    
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
-                โปรแกรมสร้างที่อยู่ลับ
+            <h1 class="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4 pulse-glow">
+                🔐 โปรแกรมสร้างที่อยู่ลับ 🔐
             </h1>
-            <p class="text-gray-400 text-lg">
-                เครื่องมือสร้างที่อยู่และเบอร์โทรศัพท์แบบสุ่มและพรางตัว
+            <p class="text-gray-400 text-lg mb-4">
+                เครื่องมือสร้างที่อยู่และเบอร์โทรศัพท์แบบสุ่มและพรางตัวขั้นสูง
             </p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <span class="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full">🎲 สุ่มรูปแบบ 1000+ แบบ</span>
+                <span class="bg-green-600/20 text-green-300 px-3 py-1 rounded-full">🛡️ ป้องกันบอท AI</span>
+                <span class="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full">⚡ ทำงานแบบ Real-time</span>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="stats-card rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-blue-400" id="generateCount">0</div>
+                <div class="text-xs text-gray-400">ครั้งที่สร้าง</div>
+            </div>
+            <div class="stats-card rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-green-400" id="copyCount">0</div>
+                <div class="text-xs text-gray-400">ครั้งที่คัดลอก</div>
+            </div>
+            <div class="stats-card rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-purple-400" id="currentVariation">A1</div>
+                <div class="text-xs text-gray-400">รูปแบบปัจจุบัน</div>
+            </div>
+            <div class="stats-card rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-yellow-400" id="obfuscationLevel">🔒</div>
+                <div class="text-xs text-gray-400">ระดับการพราง</div>
+            </div>
         </div>
 
         <!-- Result Display -->
-        <div class="result-box rounded-xl p-6 mb-6">
-            <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-x-auto"></pre>
+        <div class="result-box rounded-xl p-6 mb-6 relative">
+            <div class="absolute top-4 right-4 text-xs text-gray-500" id="generationTime"></div>
+            <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-x-auto typing-effect"></pre>
         </div>
 
-        <!-- Control Buttons -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button id="generateBtn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg">
-                สร้างใหม่ 🎲
+        <!-- Advanced Control Panel -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <button id="generateBtn" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                🎲 สร้างใหม่
             </button>
-            <button id="copyBtn" class="btn-secondary text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg">
-                คัดลอก 📋
+            <button id="copyBtn" class="btn-secondary text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                📋 คัดลอก
             </button>
+            <button id="autoGenBtn" class="btn-accent text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                ⚡ Auto <span id="autoStatus">OFF</span>
+            </button>
+            <button id="clearBtn" class="btn-danger text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
+                🗑️ ล้างข้อมูล
+            </button>
+        </div>
+
+        <!-- Advanced Settings -->
+        <div class="bg-gray-800 rounded-xl p-6 mb-6">
+            <h3 class="text-xl font-bold mb-4 text-center">⚙️ การตั้งค่าขั้นสูง</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">ระดับการพรางตัว</label>
+                    <select id="obfuscationSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        <option value="low">🟢 ต่ำ - อ่านง่าย</option>
+                        <option value="medium" selected>🟡 กลาง - สมดุล</option>
+                        <option value="high">🔴 สูง - พรางหนัก</option>
+                        <option value="extreme">⚫ สุดขั้น - เกือบไม่อ่านออก</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">จำนวนบรรทัด</label>
+                    <select id="linesSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        <option value="auto" selected>🎲 สุ่มอัตโนมัติ</option>
+                        <option value="2">2 บรรทัด</option>
+                        <option value="3">3 บรรทัด</option>
+                        <option value="4">4 บรรทัด</option>
+                        <option value="5">5 บรรทัด</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">ความเร็ว Auto</label>
+                    <select id="speedSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                        <option value="1000">⚡ เร็วมาก (1s)</option>
+                        <option value="2000">🚀 เร็ว (2s)</option>
+                        <option value="3000" selected>⏱️ ปกติ (3s)</option>
+                        <option value="5000">🐌 ช้า (5s)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div class="bg-gray-800 rounded-xl p-6">
+            <h3 class="text-xl font-bold mb-4 text-center">📚 ประวัติการสร้าง (5 ครั้งล่าสุด)</h3>
+            <div id="historyContainer" class="space-y-2 max-h-60 overflow-y-auto">
+                <div class="text-center text-gray-500 text-sm">ยังไม่มีประวัติ</div>
+            </div>
         </div>
 
         <!-- Status Message -->
@@ -74,13 +220,13 @@
     </div>
 
     <script>
-        // Core data - ข้อมูลจริงที่อัปเดตแล้ว
+        // Enhanced Core Data
         const CORE_ADDRESS = {
             soi: "ลาดกระบัง16",
             village: "หมู่บ้านไทยสมุทร2",
             houseNumber: "62/37",
             road: "ลาดกระบัง",
-            subdistrict: "ราชาเทวะ", // แก้ไขจาก "ราชาาเทวะ"
+            subdistrict: "ราชาเทวะ",
             district: "บางพลี",
             province: "สมุทรปราการ",
             postalCode: "10540"
@@ -88,7 +234,59 @@
         
         const CORE_PHONE = "0961408164";
 
-        // Obfuscation utilities
+        // Statistics tracking
+        let stats = {
+            generateCount: 0,
+            copyCount: 0,
+            currentVariation: 'A1',
+            obfuscationLevel: 'medium'
+        };
+
+        // History tracking
+        let history = [];
+        let autoInterval = null;
+
+        // Matrix background effect
+        function initMatrixEffect() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
+            const matrixArray = matrix.split("");
+            
+            const fontSize = 10;
+            const columns = canvas.width / fontSize;
+            const drops = [];
+            
+            for(let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#0F4';
+                ctx.font = fontSize + 'px monospace';
+                
+                for(let i = 0; i < drops.length; i++) {
+                    const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    
+                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 35);
+        }
+
+        // Enhanced Obfuscation Utilities
         const ObfuscationUtils = {
             // Convert to Thai numerals
             toThaiNumerals: (str) => {
@@ -105,30 +303,66 @@
 
             // Add zero-width spaces randomly
             addZeroWidthSpaces: (str) => {
-                if (Math.random() < 0.3) return str; // 30% chance to apply
-                return str.split('').join('\u200B');
+                const level = document.getElementById('obfuscationSelect').value;
+                const chance = {
+                    'low': 0.1,
+                    'medium': 0.3,
+                    'high': 0.6,
+                    'extreme': 0.9
+                }[level];
+                
+                if (Math.random() < chance) {
+                    return str.split('').join('\u200B');
+                }
+                return str;
             },
 
             // Add random emoji
             addRandomEmoji: () => {
-                const emojis = ['🏠', '📍', '🚪', '🏘️', '📫', '🔔', '🧭', '📞', '📦', '🇹🇭', '➡️'];
-                return Math.random() < 0.4 ? emojis[Math.floor(Math.random() * emojis.length)] + ' ' : '';
+                const level = document.getElementById('obfuscationSelect').value;
+                const emojis = ['🏠', '📍', '🚪', '🏘️', '📫', '🔔', '🧭', '📞', '📦', '🇹🇭', '➡️', '🎯', '⭐', '🔥', '💎', '🌟'];
+                const chance = {
+                    'low': 0.2,
+                    'medium': 0.4,
+                    'high': 0.7,
+                    'extreme': 1.0
+                }[level];
+                
+                return Math.random() < chance ? emojis[Math.floor(Math.random() * emojis.length)] + ' ' : '';
             },
 
-            // Random number formatting
+            // Enhanced number formatting
             formatNumber: (num) => {
-                const formats = [
+                const level = document.getElementById('obfuscationSelect').value;
+                let formats = [
                     num,
                     num.replace(/(\d+)\/(\d+)/, '$1-$2'),
                     num.replace(/(\d+)\/(\d+)/, '$1 / $2'),
-                    num.replace(/(\d+)\/(\d+)/, '($1) $2'),
-                    ObfuscationUtils.toThaiNumerals(num),
-                    ObfuscationUtils.toFullWidth(num)
+                    num.replace(/(\d+)\/(\d+)/, '($1) $2')
                 ];
+
+                if (level === 'medium' || level === 'high' || level === 'extreme') {
+                    formats.push(
+                        ObfuscationUtils.toThaiNumerals(num),
+                        ObfuscationUtils.toFullWidth(num),
+                        num.replace(/(\d+)\/(\d+)/, '[$1]/$2'),
+                        num.replace(/(\d+)\/(\d+)/, '$1｜$2')
+                    );
+                }
+
+                if (level === 'extreme') {
+                    formats.push(
+                        num.split('').join('･'),
+                        num.replace(/(\d)/g, '$1̲'),
+                        `◆${num}◆`,
+                        `【${num}】`
+                    );
+                }
+
                 return formats[Math.floor(Math.random() * formats.length)];
             },
 
-            // Random phone formatting
+            // Enhanced phone formatting
             formatPhone: (phone) => {
                 const formats = [
                     phone,
@@ -139,42 +373,62 @@
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2-$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '0$1 $2 $3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2.$3')
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2.$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '+66-$1-$2-$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1｜$2｜$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '[$1]$2-$3')
                 ];
                 return formats[Math.floor(Math.random() * formats.length)];
+            },
+
+            // Generate variation code
+            generateVariationCode: () => {
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const numbers = '0123456789';
+                return letters[Math.floor(Math.random() * letters.length)] + 
+                       numbers[Math.floor(Math.random() * numbers.length)];
             }
         };
 
-        // Label variations
+        // Enhanced Labels with more variations
         const Labels = {
-            soi: ['ซ.', 'ซอย', 'Soi', ''],
-            village: ['หมู่บ้าน', 'หมู่บ้าน:', 'Village', ''],
-            house: ['บ้านเลขที่', 'เลขที่', 'บ้าน', 'House No.', 'No.', ''],
-            road: ['ถ.', 'ถนน', 'Road', 'Rd.', ''],
-            subdistrict: ['ต.', 'ตำบล', 'T.', 'Sub-district', ''],
-            district: ['อ.', 'อำเภอ', 'A.', 'District', ''],
-            province: ['จ.', 'จังหวัด', 'Province', ''],
-            phone: ['โทร', 'Tel', 'Phone', 'เบอร์', 'ติดต่อ', '📞', '']
+            soi: ['ซ.', 'ซอย', 'Soi', 'S.', '🛣️', ''],
+            village: ['หมู่บ้าน', 'หมู่บ้าน:', 'Village', 'V.', 'หมู่บ้าน :', '🏘️', ''],
+            house: ['บ้านเลขที่', 'เลขที่', 'บ้าน', 'House No.', 'No.', 'H.', '#', '🏠', ''],
+            road: ['ถ.', 'ถนน', 'Road', 'Rd.', 'R.', '🛤️', ''],
+            subdistrict: ['ต.', 'ตำบล', 'T.', 'Sub-district', 'Tambon', '📍', ''],
+            district: ['อ.', 'อำเภอ', 'A.', 'District', 'Amphoe', '🏛️', ''],
+            province: ['จ.', 'จังหวัด', 'Province', 'P.', 'Changwat', '🗺️', ''],
+            phone: ['โทร', 'Tel', 'Phone', 'เบอร์', 'ติดต่อ', 'Call', 'Mobile', '📞', '☎️', '📱', '']
         };
 
-        // Symbols for labels
-        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' → '];
+        // Enhanced symbols
+        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' → ', ' ➤ ', ' ◆ ', ' ▶ ', ' ✦ ', ' ⟩ '];
 
-        // Generate random address
+        // Generate random address with enhanced features
         function generateRandomAddress() {
+            const startTime = Date.now();
             const result = [];
             
-            // Randomly decide number of lines (2-5)
-            const numLines = Math.floor(Math.random() * 4) + 2;
+            // Get settings
+            const linesSelect = document.getElementById('linesSelect').value;
+            const numLines = linesSelect === 'auto' ? 
+                Math.floor(Math.random() * 4) + 2 : 
+                parseInt(linesSelect);
             
-            // Create component pool - เลขที่บ้านต้องมีทุกครั้ง
+            // Create component pool - เลขที่บ้านและเบอร์โทรต้องมีทุกครั้ง
             const components = [
-                // เลขที่บ้าน - ต้องมีทุกครั้ง (ลำดับแรก)
                 {
                     type: 'house',
                     value: ObfuscationUtils.formatNumber(CORE_ADDRESS.houseNumber),
                     label: Labels.house[Math.floor(Math.random() * Labels.house.length)],
-                    required: true // บังคับให้มี
+                    required: true
+                },
+                {
+                    type: 'phone',
+                    value: ObfuscationUtils.formatPhone(CORE_PHONE),
+                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)],
+                    required: true
                 },
                 {
                     type: 'soi',
@@ -217,23 +471,17 @@
                     value: Math.random() < 0.5 ? CORE_ADDRESS.postalCode : ObfuscationUtils.toThaiNumerals(CORE_ADDRESS.postalCode),
                     label: Math.random() < 0.5 ? '' : 'รหัสไปรษณีย์',
                     required: false
-                },
-                {
-                    type: 'phone',
-                    value: ObfuscationUtils.formatPhone(CORE_PHONE),
-                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)],
-                    required: true
                 }
             ];
 
-            // แยกส่วนประกอบที่บังคับและไม่บังคับ
+            // Separate required and optional components
             const requiredComponents = components.filter(comp => comp.required);
             const optionalComponents = components.filter(comp => !comp.required);
             
-            // สุ่มส่วนประกอบที่ไม่บังคับ
+            // Shuffle optional components
             const shuffledOptional = [...optionalComponents].sort(() => Math.random() - 0.5);
             
-            // รวมกัน โดยให้เลขที่บ้านอยู่ในลำดับที่เหมาะสม
+            // Combine components
             const allComponents = [...requiredComponents, ...shuffledOptional];
             
             // Group components into lines
@@ -287,25 +535,118 @@
                 result.push(line.trim());
             }
 
-            // 25% chance to wrap in composite phrase
-            if (Math.random() < 0.25) {
+            // Enhanced composite phrases
+            const level = document.getElementById('obfuscationSelect').value;
+            const compositeChance = {
+                'low': 0.15,
+                'medium': 0.25,
+                'high': 0.35,
+                'extreme': 0.5
+            }[level];
+
+            if (Math.random() < compositeChance) {
                 const phrases = [
-                    `กรุณาส่งพัสดุมาที่:\n${result.join('\n')}\nขอบคุณครับ/ค่ะ`,
-                    `ข้อมูลผู้รับพัสดุ:\n${result.join('\n')}`,
-                    `ที่อยู่สำหรับจัดส่ง:\n${result.join('\n')}`,
-                    `📦 ที่อยู่จัดส่ง 📦\n${result.join('\n')}`,
-                    `🏠 ข้อมูลที่อยู่ 🏠\n${result.join('\n')}`
+                    `📦 กรุณาส่งพัสดุมาที่:\n${result.join('\n')}\n🙏 ขอบคุณครับ/ค่ะ`,
+                    `📋 ข้อมูลผู้รับพัสดุ:\n${result.join('\n')}\n✅ ยืนยันข้อมูล`,
+                    `🚚 ที่อยู่สำหรับจัดส่ง:\n${result.join('\n')}\n⏰ รับได้ทุกวัน 9-18 น.`,
+                    `📍 ข้อมูลที่อยู่จัดส่ง:\n${result.join('\n')}\n🔔 กรุณาโทรก่อนส่ง`,
+                    `🏠 ที่อยู่ปลายทาง:\n${result.join('\n')}\n💬 ติดต่อได้ตลอด`,
+                    `⭐ ข้อมูลการจัดส่ง:\n${result.join('\n')}\n🎯 จัดส่งด่วนพิเศษ`,
+                    `🌟 รายละเอียดผู้รับ:\n${result.join('\n')}\n🔥 สำคัญมาก!`
                 ];
-                return phrases[Math.floor(Math.random() * phrases.length)];
+                const finalResult = phrases[Math.floor(Math.random() * phrases.length)];
+                
+                // Update stats
+                updateStats(startTime, finalResult);
+                return finalResult;
             }
 
-            return result.join('\n');
+            const finalResult = result.join('\n');
+            updateStats(startTime, finalResult);
+            return finalResult;
+        }
+
+        // Update statistics
+        function updateStats(startTime, result) {
+            stats.generateCount++;
+            stats.currentVariation = ObfuscationUtils.generateVariationCode();
+            stats.obfuscationLevel = document.getElementById('obfuscationSelect').value;
+            
+            // Update UI
+            document.getElementById('generateCount').textContent = stats.generateCount;
+            document.getElementById('currentVariation').textContent = stats.currentVariation;
+            
+            const levelEmojis = {
+                'low': '🟢',
+                'medium': '🟡',
+                'high': '🔴',
+                'extreme': '⚫'
+            };
+            document.getElementById('obfuscationLevel').textContent = levelEmojis[stats.obfuscationLevel];
+            
+            // Update generation time
+            const generationTime = Date.now() - startTime;
+            document.getElementById('generationTime').textContent = `Generated in ${generationTime}ms`;
+            
+            // Add to history
+            addToHistory(result);
+        }
+
+        // Add to history
+        function addToHistory(result) {
+            const timestamp = new Date().toLocaleTimeString('th-TH');
+            history.unshift({
+                id: Date.now(),
+                content: result,
+                timestamp: timestamp,
+                variation: stats.currentVariation
+            });
+            
+            // Keep only last 5 items
+            if (history.length > 5) {
+                history = history.slice(0, 5);
+            }
+            
+            updateHistoryDisplay();
+        }
+
+        // Update history display
+        function updateHistoryDisplay() {
+            const container = document.getElementById('historyContainer');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 text-sm">ยังไม่มีประวัติ</div>';
+                return;
+            }
+            
+            container.innerHTML = history.map((item, index) => `
+                <div class="bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-600 transition-colors" onclick="loadFromHistory(${item.id})">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-blue-400">#${item.variation}</span>
+                        <span class="text-xs text-gray-400">${item.timestamp}</span>
+                    </div>
+                    <div class="text-sm text-gray-300 truncate mono-font">${item.content.split('\n')[0]}...</div>
+                </div>
+            `).join('');
+        }
+
+        // Load from history
+        function loadFromHistory(id) {
+            const item = history.find(h => h.id === id);
+            if (item) {
+                const resultEl = document.getElementById('resultDisplay');
+                resultEl.textContent = item.content;
+                resultEl.classList.add('fade-in');
+                showStatus(`โหลดจากประวัติ #${item.variation} เรียบร้อย! 📚`);
+            }
         }
 
         // Copy to clipboard function
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
+                stats.copyCount++;
+                document.getElementById('copyCount').textContent = stats.copyCount;
                 showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
             } catch (err) {
                 // Fallback for older browsers
@@ -315,6 +656,8 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
+                stats.copyCount++;
+                document.getElementById('copyCount').textContent = stats.copyCount;
                 showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
             }
         }
@@ -344,6 +687,57 @@
             showStatus('สร้างที่อยู่ใหม่แล้ว! 🎲');
         }
 
+        // Auto generation toggle
+        function toggleAutoGeneration() {
+            const btn = document.getElementById('autoGenBtn');
+            const statusSpan = document.getElementById('autoStatus');
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                btn.classList.remove('btn-accent');
+                btn.classList.add('btn-primary');
+                statusSpan.textContent = 'OFF';
+                showStatus('ปิด Auto Generation แล้ว 🛑');
+            } else {
+                const speed = parseInt(document.getElementById('speedSelect').value);
+                autoInterval = setInterval(generateNew, speed);
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-accent');
+                statusSpan.textContent = 'ON';
+                showStatus(`เปิด Auto Generation แล้ว ⚡ (${speed/1000}s)`);
+            }
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลทั้งหมด?')) {
+                // Reset stats
+                stats = {
+                    generateCount: 0,
+                    copyCount: 0,
+                    currentVariation: 'A1',
+                    obfuscationLevel: 'medium'
+                };
+                
+                // Reset history
+                history = [];
+                
+                // Clear display
+                document.getElementById('resultDisplay').textContent = '';
+                
+                // Update UI
+                document.getElementById('generateCount').textContent = '0';
+                document.getElementById('copyCount').textContent = '0';
+                document.getElementById('currentVariation').textContent = 'A1';
+                document.getElementById('obfuscationLevel').textContent = '🟡';
+                document.getElementById('generationTime').textContent = '';
+                
+                updateHistoryDisplay();
+                showStatus('ล้างข้อมูลทั้งหมดเรียบร้อย! 🗑️', 'success');
+            }
+        }
+
         // Event listeners
         document.getElementById('generateBtn').addEventListener('click', generateNew);
         document.getElementById('copyBtn').addEventListener('click', () => {
@@ -354,14 +748,25 @@
                 showStatus('ไม่มีข้อมูลให้คัดลอก');
             }
         });
+        document.getElementById('autoGenBtn').addEventListener('click', toggleAutoGeneration);
+        document.getElementById('clearBtn').addEventListener('click', clearAllData);
 
-        // Generate initial address on page load
+        // Settings change handlers
+        document.getElementById('speedSelect').addEventListener('change', () => {
+            if (autoInterval) {
+                toggleAutoGeneration(); // Turn off
+                toggleAutoGeneration(); // Turn on with new speed
+            }
+        });
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, generating address...');
+            console.log('Enhanced Address Generator loaded!');
+            initMatrixEffect();
             generateNew();
         });
 
-        // Backup: Generate after a short delay if nothing shows
+        // Backup generation
         setTimeout(() => {
             const resultEl = document.getElementById('resultDisplay');
             if (!resultEl.textContent.trim()) {
@@ -369,6 +774,13 @@
                 generateNew();
             }
         }, 1000);
+
+        // Handle window resize for matrix effect
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('matrixCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
