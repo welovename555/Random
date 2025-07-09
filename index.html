@@ -136,8 +136,10 @@
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1.$2.$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'),
-                    ObfuscationUtils.toThaiNumerals(phone),
-                    ObfuscationUtils.toFullWidth(phone)
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2-$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '0$1 $2 $3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2.$3')
                 ];
                 return formats[Math.floor(Math.random() * formats.length)];
             }
@@ -220,7 +222,7 @@
                     type: 'phone',
                     value: ObfuscationUtils.formatPhone(CORE_PHONE),
                     label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)],
-                    required: false
+                    required: true
                 }
             ];
 
