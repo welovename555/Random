@@ -165,66 +165,83 @@
             // Randomly decide number of lines (2-5)
             const numLines = Math.floor(Math.random() * 4) + 2;
             
-            // Create component pool
+            // Create component pool - เลขที่บ้านต้องมีทุกครั้ง
             const components = [
+                // เลขที่บ้าน - ต้องมีทุกครั้ง (ลำดับแรก)
+                {
+                    type: 'house',
+                    value: ObfuscationUtils.formatNumber(CORE_ADDRESS.houseNumber),
+                    label: Labels.house[Math.floor(Math.random() * Labels.house.length)],
+                    required: true // บังคับให้มี
+                },
                 {
                     type: 'soi',
                     value: CORE_ADDRESS.soi,
-                    label: Labels.soi[Math.floor(Math.random() * Labels.soi.length)]
+                    label: Labels.soi[Math.floor(Math.random() * Labels.soi.length)],
+                    required: false
                 },
                 {
                     type: 'village',
                     value: CORE_ADDRESS.village,
-                    label: Labels.village[Math.floor(Math.random() * Labels.village.length)]
-                },
-                {
-                    type: 'house',
-                    value: ObfuscationUtils.formatNumber(CORE_ADDRESS.houseNumber),
-                    label: Labels.house[Math.floor(Math.random() * Labels.house.length)]
+                    label: Labels.village[Math.floor(Math.random() * Labels.village.length)],
+                    required: false
                 },
                 {
                     type: 'road',
                     value: CORE_ADDRESS.road,
-                    label: Labels.road[Math.floor(Math.random() * Labels.road.length)]
+                    label: Labels.road[Math.floor(Math.random() * Labels.road.length)],
+                    required: false
                 },
                 {
                     type: 'subdistrict',
                     value: CORE_ADDRESS.subdistrict,
-                    label: Labels.subdistrict[Math.floor(Math.random() * Labels.subdistrict.length)]
+                    label: Labels.subdistrict[Math.floor(Math.random() * Labels.subdistrict.length)],
+                    required: false
                 },
                 {
                     type: 'district',
                     value: CORE_ADDRESS.district,
-                    label: Labels.district[Math.floor(Math.random() * Labels.district.length)]
+                    label: Labels.district[Math.floor(Math.random() * Labels.district.length)],
+                    required: false
                 },
                 {
                     type: 'province',
                     value: CORE_ADDRESS.province,
-                    label: Labels.province[Math.floor(Math.random() * Labels.province.length)]
+                    label: Labels.province[Math.floor(Math.random() * Labels.province.length)],
+                    required: false
                 },
                 {
                     type: 'postal',
                     value: Math.random() < 0.5 ? CORE_ADDRESS.postalCode : ObfuscationUtils.toThaiNumerals(CORE_ADDRESS.postalCode),
-                    label: Math.random() < 0.5 ? '' : 'รหัสไปรษณีย์'
+                    label: Math.random() < 0.5 ? '' : 'รหัสไปรษณีย์',
+                    required: false
                 },
                 {
                     type: 'phone',
                     value: ObfuscationUtils.formatPhone(CORE_PHONE),
-                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)]
+                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)],
+                    required: false
                 }
             ];
 
-            // Shuffle components
-            const shuffled = [...components].sort(() => Math.random() - 0.5);
+            // แยกส่วนประกอบที่บังคับและไม่บังคับ
+            const requiredComponents = components.filter(comp => comp.required);
+            const optionalComponents = components.filter(comp => !comp.required);
+            
+            // สุ่มส่วนประกอบที่ไม่บังคับ
+            const shuffledOptional = [...optionalComponents].sort(() => Math.random() - 0.5);
+            
+            // รวมกัน โดยให้เลขที่บ้านอยู่ในลำดับที่เหมาะสม
+            const allComponents = [...requiredComponents, ...shuffledOptional];
             
             // Group components into lines
             const linesData = [];
             let currentLine = [];
             
-            for (let i = 0; i < shuffled.length && linesData.length < numLines; i++) {
-                currentLine.push(shuffled[i]);
+            for (let i = 0; i < allComponents.length && linesData.length < numLines; i++) {
+                currentLine.push(allComponents[i]);
                 
-                if (currentLine.length >= Math.ceil(shuffled.length / numLines) || 
+                if (currentLine.length >= Math.ceil(allComponents.length / numLines) || 
                     (Math.random() < 0.4 && currentLine.length > 0)) {
                     linesData.push([...currentLine]);
                     currentLine = [];
