@@ -111,11 +111,9 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen thai-font">
-    <!-- Matrix Background Effect -->
     <canvas class="matrix-bg" id="matrixCanvas"></canvas>
     
     <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4 pulse-glow">
                 🔐 โปรแกรมสร้างที่อยู่ลับ 🔐
@@ -130,7 +128,6 @@
             </div>
         </div>
 
-        <!-- Stats Dashboard -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="stats-card rounded-lg p-4 text-center">
                 <div class="text-2xl font-bold text-blue-400" id="generateCount">0</div>
@@ -150,13 +147,11 @@
             </div>
         </div>
 
-        <!-- Result Display -->
         <div class="result-box rounded-xl p-6 mb-6 relative">
             <div class="absolute top-4 right-4 text-xs text-gray-500" id="generationTime"></div>
             <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-x-auto typing-effect"></pre>
         </div>
 
-        <!-- Advanced Control Panel -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <button id="generateBtn" class="btn-primary text-white px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
                 🎲 สร้างใหม่
@@ -172,7 +167,6 @@
             </button>
         </div>
 
-        <!-- Advanced Settings -->
         <div class="bg-gray-800 rounded-xl p-6 mb-6">
             <h3 class="text-xl font-bold mb-4 text-center">⚙️ การตั้งค่าขั้นสูง</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -207,7 +201,6 @@
             </div>
         </div>
 
-        <!-- History Panel -->
         <div class="bg-gray-800 rounded-xl p-6">
             <h3 class="text-xl font-bold mb-4 text-center">📚 ประวัติการสร้าง (5 ครั้งล่าสุด)</h3>
             <div id="historyContainer" class="space-y-2 max-h-60 overflow-y-auto">
@@ -215,7 +208,6 @@
             </div>
         </div>
 
-        <!-- Status Message -->
         <div id="statusMessage" class="text-center mt-4 text-sm text-gray-500"></div>
     </div>
 
@@ -317,7 +309,7 @@
                 return str;
             },
 
-            // Add random emoji
+            // Add random emoji (unused in final output string but kept for UI)
             addRandomEmoji: () => {
                 const level = document.getElementById('obfuscationSelect').value;
                 const emojis = ['🏠', '📍', '🚪', '🏘️', '📫', '🔔', '🧭', '📞', '📦', '🇹🇭', '➡️', '🎯', '⭐', '🔥', '💎', '🌟'];
@@ -346,16 +338,16 @@
                         ObfuscationUtils.toThaiNumerals(num),
                         ObfuscationUtils.toFullWidth(num),
                         num.replace(/(\d+)\/(\d+)/, '[$1]/$2'),
-                        num.replace(/(\d+)\/(\d+)/, '$1｜$2')
+                        num.replace(/(\d+)\/(\d+)/, '$1|$2')
                     );
                 }
 
                 if (level === 'extreme') {
                     formats.push(
-                        num.split('').join('･'),
-                        num.replace(/(\d)/g, '$1̲'),
-                        `◆${num}◆`,
-                        `【${num}】`
+                        num.split('').join(' '),
+                        num.replace(/(\d)/g, '$1-'),
+                        `--${num}--`,
+                        `(${num})`
                     );
                 }
 
@@ -375,7 +367,7 @@
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '0$1 $2 $3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2.$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '+66-$1-$2-$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1｜$2｜$3'),
+                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1|$2|$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '[$1]$2-$3')
                 ];
                 return formats[Math.floor(Math.random() * formats.length)];
@@ -403,18 +395,12 @@
         };
 
         // Enhanced symbols
-        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' → ', ' ➤ ', ' ◆ ', ' ▶ ', ' ✦ ', ' ⟩ '];
+        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' > ', ' . '];
 
         // Generate random address with enhanced features
         function generateRandomAddress() {
             const startTime = Date.now();
-            const result = [];
-            
-            // Get settings
-            const linesSelect = document.getElementById('linesSelect').value;
-            const numLines = linesSelect === 'auto' ? 
-                Math.floor(Math.random() * 4) + 2 : 
-                parseInt(linesSelect);
+            const resultParts = [];
             
             // Create component pool - เลขที่บ้านและเบอร์โทรต้องมีทุกครั้ง
             const components = [
@@ -478,81 +464,64 @@
             const requiredComponents = components.filter(comp => comp.required);
             const optionalComponents = components.filter(comp => !comp.required);
             
-            // Shuffle optional components
-            const shuffledOptional = [...optionalComponents].sort(() => Math.random() - 0.5);
+            // Shuffle all components randomly to ensure varied order
+            const shuffledComponents = [...requiredComponents, ...optionalComponents].sort(() => Math.random() - 0.5);
             
-            // Combine components
-            const allComponents = [...requiredComponents, ...shuffledOptional];
-            
-            // Group components into lines
-            const linesData = [];
-            let currentLine = [];
-            
-            for (let i = 0; i < allComponents.length && linesData.length < numLines; i++) {
-                currentLine.push(allComponents[i]);
+            // Format each component into a single part
+            for (const comp of shuffledComponents) {
+                const symbol = Math.random() < 0.3 ? Symbols[Math.floor(Math.random() * Symbols.length)] : ' ';
                 
-                if (currentLine.length >= Math.ceil(allComponents.length / numLines) || 
-                    (Math.random() < 0.4 && currentLine.length > 0)) {
-                    linesData.push([...currentLine]);
-                    currentLine = [];
-                }
-            }
-            
-            if (currentLine.length > 0) {
-                if (linesData.length > 0) {
-                    linesData[linesData.length - 1].push(...currentLine);
-                } else {
-                    linesData.push(currentLine);
-                }
-            }
+                let formattedPart = '';
+                // Randomly decide to show label or not for optional items
+                const showLabel = comp.required || Math.random() < 0.7;
 
-            // Format each line
-            for (const lineComponents of linesData) {
-                let line = '';
-                
-                for (let i = 0; i < lineComponents.length; i++) {
-                    const comp = lineComponents[i];
-                    const emoji = ObfuscationUtils.addRandomEmoji();
-                    const symbol = Math.random() < 0.3 ? Symbols[Math.floor(Math.random() * Symbols.length)] : ' ';
-                    const spacing = Math.random() < 0.3 ? '  ' : ' ';
-                    
-                    let formatted = '';
-                    if (comp.label) {
-                        formatted = `${emoji}${comp.label}${symbol}${comp.value}`;
+                if (comp.label && showLabel) {
+                    // Remove emoji from label for the final string
+                    const cleanLabel = comp.label.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/ug, '').trim();
+                    if (cleanLabel) {
+                        formattedPart = `${cleanLabel}${symbol}${comp.value}`;
                     } else {
-                        formatted = `${emoji}${comp.value}`;
+                        formattedPart = comp.value;
                     }
-                    
-                    // Apply zero-width space obfuscation
-                    formatted = ObfuscationUtils.addZeroWidthSpaces(formatted);
-                    
-                    line += formatted;
-                    if (i < lineComponents.length - 1) {
-                        line += Math.random() < 0.5 ? spacing : ', ';
-                    }
+                } else {
+                    formattedPart = comp.value;
                 }
                 
-                result.push(line.trim());
+                // Apply zero-width space obfuscation
+                resultParts.push(ObfuscationUtils.addZeroWidthSpaces(formattedPart));
             }
 
-            // Enhanced composite phrases
+            // Join all parts into a single line with random separators
+            const separators = [', ', ' | ', '  ', '. ', ' - '];
+            let singleLineResult = '';
+            for (let i = 0; i < resultParts.length; i++) {
+                singleLineResult += resultParts[i];
+                if (i < resultParts.length - 1) {
+                    singleLineResult += separators[Math.floor(Math.random() * separators.length)];
+                }
+            }
+
+            // Enhanced composite phrases (single-line, no emoji)
             const level = document.getElementById('obfuscationSelect').value;
             const compositeChance = {
-                'low': 0.15,
-                'medium': 0.25,
-                'high': 0.35,
-                'extreme': 0.5
+                'low': 0.2,
+                'medium': 0.4,
+                'high': 0.6,
+                'extreme': 0.8
             }[level];
 
             if (Math.random() < compositeChance) {
                 const phrases = [
-                    `📦 กรุณาส่งพัสดุมาที่:\n${result.join('\n')}\n🙏 ขอบคุณครับ/ค่ะ`,
-                    `📋 ข้อมูลผู้รับพัสดุ:\n${result.join('\n')}\n✅ ยืนยันข้อมูล`,
-                    `🚚 ที่อยู่สำหรับจัดส่ง:\n${result.join('\n')}\n⏰ รับได้ทุกวัน 9-18 น.`,
-                    `📍 ข้อมูลที่อยู่จัดส่ง:\n${result.join('\n')}\n🔔 กรุณาโทรก่อนส่ง`,
-                    `🏠 ที่อยู่ปลายทาง:\n${result.join('\n')}\n💬 ติดต่อได้ตลอด`,
-                    `⭐ ข้อมูลการจัดส่ง:\n${result.join('\n')}\n🎯 จัดส่งด่วนพิเศษ`,
-                    `🌟 รายละเอียดผู้รับ:\n${result.join('\n')}\n🔥 สำคัญมาก!`
+                    `กรุณาส่งพัสดุมาที่: ${singleLineResult} -- ขอบคุณครับ/ค่ะ`,
+                    `ข้อมูลผู้รับพัสดุ -> ${singleLineResult} (ยืนยันข้อมูล)`,
+                    `ที่อยู่สำหรับจัดส่ง: ${singleLineResult} // รับได้ทุกวัน 9-18 น.`,
+                    `ข้อมูลที่อยู่จัดส่ง: ${singleLineResult} <กรุณาโทรก่อนส่ง>`,
+                    `ที่อยู่ปลายทาง: ${singleLineResult} (ติดต่อได้ตลอด)`,
+                    `ข้อมูลการจัดส่ง: ${singleLineResult} ++จัดส่งด่วนพิเศษ++`,
+                    `รายละเอียดผู้รับ: ${singleLineResult} --สำคัญมาก--`,
+                    `ยืนยันที่อยู่ผู้รับ: ${singleLineResult} | โทรแจ้งล่วงหน้าได้`,
+                    `Package Destination: ${singleLineResult} // Please call before delivery.`,
+                    `[ข้อมูลลับ] ที่อยู่: ${singleLineResult} (สำหรับเจ้าหน้าที่เท่านั้น)`
                 ];
                 const finalResult = phrases[Math.floor(Math.random() * phrases.length)];
                 
@@ -561,7 +530,7 @@
                 return finalResult;
             }
 
-            const finalResult = result.join('\n');
+            const finalResult = singleLineResult;
             updateStats(startTime, finalResult);
             return finalResult;
         }
@@ -625,7 +594,7 @@
                         <span class="text-xs text-blue-400">#${item.variation}</span>
                         <span class="text-xs text-gray-400">${item.timestamp}</span>
                     </div>
-                    <div class="text-sm text-gray-300 truncate mono-font">${item.content.split('\n')[0]}...</div>
+                    <div class="text-sm text-gray-300 truncate mono-font">${item.content}...</div>
                 </div>
             `).join('');
         }
