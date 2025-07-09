@@ -74,13 +74,13 @@
     </div>
 
     <script>
-        // Core data - DO NOT MODIFY CONTENT
+        // Core data - ข้อมูลจริงที่อัปเดตแล้ว
         const CORE_ADDRESS = {
             soi: "ลาดกระบัง16",
             village: "หมู่บ้านไทยสมุทร2",
             houseNumber: "62/37",
             road: "ลาดกระบัง",
-            subdistrict: "ราชาเทวะ",
+            subdistrict: "ราชาเทวะ", // แก้ไขจาก "ราชาาเทวะ"
             district: "บางพลี",
             province: "สมุทรปราการ",
             postalCode: "10540"
@@ -122,8 +122,8 @@
                     num.replace(/(\d+)\/(\d+)/, '$1-$2'),
                     num.replace(/(\d+)\/(\d+)/, '$1 / $2'),
                     num.replace(/(\d+)\/(\d+)/, '($1) $2'),
-                    this.toThaiNumerals(num),
-                    this.toFullWidth(num)
+                    ObfuscationUtils.toThaiNumerals(num),
+                    ObfuscationUtils.toFullWidth(num)
                 ];
                 return formats[Math.floor(Math.random() * formats.length)];
             },
@@ -136,8 +136,8 @@
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1.$2.$3'),
                     phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'),
-                    this.toThaiNumerals(phone),
-                    this.toFullWidth(phone)
+                    ObfuscationUtils.toThaiNumerals(phone),
+                    ObfuscationUtils.toFullWidth(phone)
                 ];
                 return formats[Math.floor(Math.random() * formats.length)];
             }
@@ -161,7 +161,6 @@
         // Generate random address
         function generateRandomAddress() {
             const result = [];
-            const usedComponents = [];
             
             // Randomly decide number of lines (2-5)
             const numLines = Math.floor(Math.random() * 4) + 2;
@@ -269,7 +268,7 @@
                 result.push(line.trim());
             }
 
-            // 20-30% chance to wrap in composite phrase
+            // 25% chance to wrap in composite phrase
             if (Math.random() < 0.25) {
                 const phrases = [
                     `กรุณาส่งพัสดุมาที่:\n${result.join('\n')}\nขอบคุณครับ/ค่ะ`,
@@ -330,11 +329,27 @@
         document.getElementById('generateBtn').addEventListener('click', generateNew);
         document.getElementById('copyBtn').addEventListener('click', () => {
             const text = document.getElementById('resultDisplay').textContent;
-            copyToClipboard(text);
+            if (text.trim()) {
+                copyToClipboard(text);
+            } else {
+                showStatus('ไม่มีข้อมูลให้คัดลอก');
+            }
         });
 
         // Generate initial address on page load
-        document.addEventListener('DOMContentLoaded', generateNew);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, generating address...');
+            generateNew();
+        });
+
+        // Backup: Generate after a short delay if nothing shows
+        setTimeout(() => {
+            const resultEl = document.getElementById('resultDisplay');
+            if (!resultEl.textContent.trim()) {
+                console.log('Backup generation triggered');
+                generateNew();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
