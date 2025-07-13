@@ -142,7 +142,7 @@
                 <div class="text-xs text-gray-400">รูปแบบปัจจุบัน</div>
             </div>
             <div class="stats-card rounded-lg p-4 text-center">
-                <div class="text-2xl font-bold text-yellow-400" id="obfuscationLevel">🔒</div>
+                <div class="text-2xl font-bold text-yellow-400" id="obfuscationLevel">🔴</div>
                 <div class="text-xs text-gray-400">ระดับการพราง</div>
             </div>
         </div>
@@ -173,10 +173,8 @@
                 <div>
                     <label class="block text-sm font-medium mb-2">ระดับการพรางตัว</label>
                     <select id="obfuscationSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
-                        <option value="low">🟢 ต่ำ - อ่านง่าย</option>
-                        <option value="medium" selected>🟡 กลาง - สมดุล</option>
-                        <option value="high">🔴 สูง - พรางหนัก</option>
-                        <option value="extreme">⚫ สุดขั้น - เกือบไม่อ่านออก</option>
+                        <option value="mode1" selected>🔴 โหมด A - พรางซ้อน</option>
+                        <option value="mode2">⚫ โหมด B - พรางหนักสุด</option>
                     </select>
                 </div>
                 <div>
@@ -231,7 +229,7 @@
             generateCount: 0,
             copyCount: 0,
             currentVariation: 'A1',
-            obfuscationLevel: 'medium'
+            obfuscationLevel: 'mode1'
         };
 
         // History tracking
@@ -280,100 +278,81 @@
 
         // Enhanced Obfuscation Utilities
         const ObfuscationUtils = {
-            // Convert to Thai numerals
             toThaiNumerals: (str) => {
                 const thaiNums = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
                 return str.replace(/[0-9]/g, (digit) => thaiNums[parseInt(digit)]);
             },
 
-            // Convert to full-width characters
             toFullWidth: (str) => {
                 return str.replace(/[!-~]/g, (char) => {
                     return String.fromCharCode(char.charCodeAt(0) + 0xFEE0);
                 });
             },
 
-            // Add zero-width spaces randomly
             addZeroWidthSpaces: (str) => {
                 const level = document.getElementById('obfuscationSelect').value;
-                const chance = {
-                    'low': 0.1,
-                    'medium': 0.3,
-                    'high': 0.6,
-                    'extreme': 0.9
-                }[level];
-                
-                if (Math.random() < chance) {
+                if (level === 'mode1' && Math.random() < 0.75) {
                     return str.split('').join('\u200B');
                 }
                 return str;
             },
-
-            // Add random emoji (unused in final output string but kept for UI)
-            addRandomEmoji: () => {
-                const level = document.getElementById('obfuscationSelect').value;
-                const emojis = ['🏠', '📍', '🚪', '🏘️', '📫', '🔔', '🧭', '📞', '📦', '🇹🇭', '➡️', '🎯', '⭐', '🔥', '💎', '🌟'];
-                const chance = {
-                    'low': 0.2,
-                    'medium': 0.4,
-                    'high': 0.7,
-                    'extreme': 1.0
-                }[level];
-                
-                return Math.random() < chance ? emojis[Math.floor(Math.random() * emojis.length)] + ' ' : '';
+            
+            injectSpecialCharacters: (str) => {
+                const symbols = ['.', ',', '?', '!', '@', '&', '฿', '(', ')', '{', '}', '[', ']', '%', '^', '+', '=', '|', '/', '\\'];
+                let result = '';
+                for (const char of str) {
+                    result += char;
+                    if (char !== ' ' && Math.random() < 0.95) { // High chance to inject
+                        result += symbols[Math.floor(Math.random() * symbols.length)];
+                    }
+                }
+                return result;
             },
 
-            // Enhanced number formatting
             formatNumber: (num) => {
                 const level = document.getElementById('obfuscationSelect').value;
-                let formats = [
-                    num,
-                    num.replace(/(\d+)\/(\d+)/, '$1-$2'),
-                    num.replace(/(\d+)\/(\d+)/, '$1 / $2'),
-                    num.replace(/(\d+)\/(\d+)/, '($1) $2')
-                ];
-
-                if (level === 'medium' || level === 'high' || level === 'extreme') {
-                    formats.push(
+                if (level === 'mode1') {
+                     // Mode A: Focus on Thai numerals and full-width
+                    const formats = [
                         ObfuscationUtils.toThaiNumerals(num),
                         ObfuscationUtils.toFullWidth(num),
-                        num.replace(/(\d+)\/(\d+)/, '[$1]/$2'),
-                        num.replace(/(\d+)\/(\d+)/, '$1|$2')
-                    );
+                        ObfuscationUtils.toThaiNumerals(num.replace(/\//, '-')),
+                        ObfuscationUtils.toFullWidth(num.replace(/\//, ' / '))
+                    ];
+                    return formats[Math.floor(Math.random() * formats.length)];
+                } 
+                if (level === 'mode2') {
+                    // Mode B: Heavy symbol injection
+                    return ObfuscationUtils.injectSpecialCharacters(num);
                 }
-
-                if (level === 'extreme') {
-                    formats.push(
-                        num.split('').join(' '),
-                        num.replace(/(\d)/g, '$1-'),
-                        `--${num}--`,
-                        `(${num})`
-                    );
-                }
-
-                return formats[Math.floor(Math.random() * formats.length)];
+                return num; // Fallback
             },
 
-            // Enhanced phone formatting
             formatPhone: (phone) => {
-                const formats = [
-                    phone,
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1.$2.$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2-$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '0$1 $2 $3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1)$2.$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '+66-$1-$2-$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1|$2|$3'),
-                    phone.replace(/(\d{3})(\d{3})(\d{4})/, '[$1]$2-$3')
-                ];
-                return formats[Math.floor(Math.random() * formats.length)];
+                const level = document.getElementById('obfuscationSelect').value;
+                if (level === 'mode1') {
+                    // Mode A: Thai numerals, full-width, and varied formats
+                    const formats = [
+                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3'),
+                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
+                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
+                    ];
+                    let formatted = formats[Math.floor(Math.random() * formats.length)];
+                    if (Math.random() < 0.75) {
+                        formatted = ObfuscationUtils.toThaiNumerals(formatted);
+                    }
+                     if (Math.random() < 0.75) {
+                        formatted = ObfuscationUtils.toFullWidth(formatted);
+                    }
+                    return formatted;
+                }
+                if (level === 'mode2') {
+                     // Mode B: Heavy symbol injection
+                    return ObfuscationUtils.injectSpecialCharacters(phone);
+                }
+                return phone; // Fallback
             },
 
-            // Generate variation code
             generateVariationCode: () => {
                 const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 const numbers = '0123456789';
@@ -382,7 +361,6 @@
             }
         };
 
-        // Enhanced Labels with more variations
         const Labels = {
             soi: ['ซ.', 'ซอย', 'Soi', 'S.', '🛣️', ''],
             village: ['หมู่บ้าน', 'หมู่บ้าน:', 'Village', 'V.', 'หมู่บ้าน :', '🏘️', ''],
@@ -394,120 +372,59 @@
             phone: ['โทร', 'Tel', 'Phone', 'เบอร์', 'ติดต่อ', 'Call', 'Mobile', '📞', '☎️', '📱', '']
         };
 
-        // Enhanced symbols
         const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' > ', ' . '];
 
-        // Generate random address with enhanced features
         function generateRandomAddress() {
             const startTime = Date.now();
+            const level = document.getElementById('obfuscationSelect').value;
             const resultParts = [];
             
-            // Create component pool - เลขที่บ้านและเบอร์โทรต้องมีทุกครั้ง
             const components = [
-                {
-                    type: 'house',
-                    value: ObfuscationUtils.formatNumber(CORE_ADDRESS.houseNumber),
-                    label: Labels.house[Math.floor(Math.random() * Labels.house.length)],
-                    required: true
-                },
-                {
-                    type: 'phone',
-                    value: ObfuscationUtils.formatPhone(CORE_PHONE),
-                    label: Labels.phone[Math.floor(Math.random() * Labels.phone.length)],
-                    required: true
-                },
-                {
-                    type: 'soi',
-                    value: CORE_ADDRESS.soi,
-                    label: Labels.soi[Math.floor(Math.random() * Labels.soi.length)],
-                    required: false
-                },
-                {
-                    type: 'village',
-                    value: CORE_ADDRESS.village,
-                    label: Labels.village[Math.floor(Math.random() * Labels.village.length)],
-                    required: false
-                },
-                {
-                    type: 'road',
-                    value: CORE_ADDRESS.road,
-                    label: Labels.road[Math.floor(Math.random() * Labels.road.length)],
-                    required: false
-                },
-                {
-                    type: 'subdistrict',
-                    value: CORE_ADDRESS.subdistrict,
-                    label: Labels.subdistrict[Math.floor(Math.random() * Labels.subdistrict.length)],
-                    required: false
-                },
-                {
-                    type: 'district',
-                    value: CORE_ADDRESS.district,
-                    label: Labels.district[Math.floor(Math.random() * Labels.district.length)],
-                    required: false
-                },
-                {
-                    type: 'province',
-                    value: CORE_ADDRESS.province,
-                    label: Labels.province[Math.floor(Math.random() * Labels.province.length)],
-                    required: false
-                },
-                {
-                    type: 'postal',
-                    value: Math.random() < 0.5 ? CORE_ADDRESS.postalCode : ObfuscationUtils.toThaiNumerals(CORE_ADDRESS.postalCode),
-                    label: Math.random() < 0.5 ? '' : 'รหัสไปรษณีย์',
-                    required: false
-                }
+                { type: 'house', value: CORE_ADDRESS.houseNumber, label: Labels.house, required: true },
+                { type: 'phone', value: CORE_PHONE, label: Labels.phone, required: true },
+                { type: 'soi', value: CORE_ADDRESS.soi, label: Labels.soi, required: false },
+                { type: 'village', value: CORE_ADDRESS.village, label: Labels.village, required: false },
+                { type: 'road', value: CORE_ADDRESS.road, label: Labels.road, required: false },
+                { type: 'subdistrict', value: CORE_ADDRESS.subdistrict, label: Labels.subdistrict, required: false },
+                { type: 'district', value: CORE_ADDRESS.district, label: Labels.district, required: false },
+                { type: 'province', value: CORE_ADDRESS.province, label: Labels.province, required: false },
+                { type: 'postal', value: CORE_ADDRESS.postalCode, label: ['รหัสไปรษณีย์', ''], required: false }
             ];
 
-            // Separate required and optional components
-            const requiredComponents = components.filter(comp => comp.required);
-            const optionalComponents = components.filter(comp => !comp.required);
+            const shuffledComponents = components.sort(() => Math.random() - 0.5);
             
-            // Shuffle all components randomly to ensure varied order
-            const shuffledComponents = [...requiredComponents, ...optionalComponents].sort(() => Math.random() - 0.5);
-            
-            // Format each component into a single part
             for (const comp of shuffledComponents) {
                 const symbol = Math.random() < 0.3 ? Symbols[Math.floor(Math.random() * Symbols.length)] : ' ';
-                
-                let formattedPart = '';
-                // Randomly decide to show label or not for optional items
                 const showLabel = comp.required || Math.random() < 0.7;
+                const randomLabel = comp.label[Math.floor(Math.random() * comp.label.length)].replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/ug, '').trim();
 
-                if (comp.label && showLabel) {
-                    // Remove emoji from label for the final string
-                    const cleanLabel = comp.label.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/ug, '').trim();
-                    if (cleanLabel) {
-                        formattedPart = `${cleanLabel}${symbol}${comp.value}`;
-                    } else {
-                        formattedPart = comp.value;
+                let rawValue = comp.value;
+                if(comp.type === 'house') rawValue = ObfuscationUtils.formatNumber(comp.value);
+                if(comp.type === 'phone') rawValue = ObfuscationUtils.formatPhone(comp.value);
+                if(comp.type === 'postal' && level === 'mode1') rawValue = ObfuscationUtils.toThaiNumerals(comp.value);
+                if(comp.type === 'postal' && level === 'mode2') rawValue = ObfuscationUtils.injectSpecialCharacters(comp.value);
+                
+                let formattedPart = (randomLabel && showLabel) ? `${randomLabel}${symbol}${rawValue}` : rawValue;
+                
+                // Apply final layer of obfuscation based on mode
+                if (level === 'mode1') {
+                    formattedPart = ObfuscationUtils.addZeroWidthSpaces(formattedPart);
+                } else if (level === 'mode2') {
+                    // In mode2, symbol injection on text part happens here to avoid double-injection on numbers/phone
+                    if (!['house', 'phone', 'postal'].includes(comp.type)) {
+                        formattedPart = ObfuscationUtils.injectSpecialCharacters(formattedPart);
                     }
-                } else {
-                    formattedPart = comp.value;
                 }
                 
-                // Apply zero-width space obfuscation
-                resultParts.push(ObfuscationUtils.addZeroWidthSpaces(formattedPart));
+                resultParts.push(formattedPart);
             }
 
-            // Join all parts into a single line with random separators
             const separators = [', ', ' | ', '  ', '. ', ' - '];
-            let singleLineResult = '';
-            for (let i = 0; i < resultParts.length; i++) {
-                singleLineResult += resultParts[i];
-                if (i < resultParts.length - 1) {
-                    singleLineResult += separators[Math.floor(Math.random() * separators.length)];
-                }
-            }
+            let singleLineResult = resultParts.join(separators[Math.floor(Math.random() * separators.length)]);
 
-            // Enhanced composite phrases (single-line, no emoji)
-            const level = document.getElementById('obfuscationSelect').value;
             const compositeChance = {
-                'low': 0.2,
-                'medium': 0.4,
-                'high': 0.6,
-                'extreme': 0.8
+                'mode1': 0.40,
+                'mode2': 0.80
             }[level];
 
             if (Math.random() < compositeChance) {
@@ -524,8 +441,6 @@
                     `[ข้อมูลลับ] ที่อยู่: ${singleLineResult} (สำหรับเจ้าหน้าที่เท่านั้น)`
                 ];
                 const finalResult = phrases[Math.floor(Math.random() * phrases.length)];
-                
-                // Update stats
                 updateStats(startTime, finalResult);
                 return finalResult;
             }
@@ -535,33 +450,26 @@
             return finalResult;
         }
 
-        // Update statistics
         function updateStats(startTime, result) {
             stats.generateCount++;
             stats.currentVariation = ObfuscationUtils.generateVariationCode();
             stats.obfuscationLevel = document.getElementById('obfuscationSelect').value;
             
-            // Update UI
             document.getElementById('generateCount').textContent = stats.generateCount;
             document.getElementById('currentVariation').textContent = stats.currentVariation;
             
             const levelEmojis = {
-                'low': '🟢',
-                'medium': '🟡',
-                'high': '🔴',
-                'extreme': '⚫'
+                'mode1': '🔴',
+                'mode2': '⚫'
             };
             document.getElementById('obfuscationLevel').textContent = levelEmojis[stats.obfuscationLevel];
             
-            // Update generation time
             const generationTime = Date.now() - startTime;
             document.getElementById('generationTime').textContent = `Generated in ${generationTime}ms`;
             
-            // Add to history
             addToHistory(result);
         }
 
-        // Add to history
         function addToHistory(result) {
             const timestamp = new Date().toLocaleTimeString('th-TH');
             history.unshift({
@@ -571,7 +479,6 @@
                 variation: stats.currentVariation
             });
             
-            // Keep only last 5 items
             if (history.length > 5) {
                 history = history.slice(0, 5);
             }
@@ -579,7 +486,6 @@
             updateHistoryDisplay();
         }
 
-        // Update history display
         function updateHistoryDisplay() {
             const container = document.getElementById('historyContainer');
             
@@ -588,7 +494,7 @@
                 return;
             }
             
-            container.innerHTML = history.map((item, index) => `
+            container.innerHTML = history.map((item) => `
                 <div class="bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-600 transition-colors" onclick="loadFromHistory(${item.id})">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-xs text-blue-400">#${item.variation}</span>
@@ -599,7 +505,6 @@
             `).join('');
         }
 
-        // Load from history
         function loadFromHistory(id) {
             const item = history.find(h => h.id === id);
             if (item) {
@@ -610,7 +515,6 @@
             }
         }
 
-        // Copy to clipboard function
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
@@ -618,7 +522,6 @@
                 document.getElementById('copyCount').textContent = stats.copyCount;
                 showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
             } catch (err) {
-                // Fallback for older browsers
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 document.body.appendChild(textArea);
@@ -631,7 +534,6 @@
             }
         }
 
-        // Show status message
         function showStatus(message, type = 'info') {
             const statusEl = document.getElementById('statusMessage');
             statusEl.textContent = message;
@@ -642,7 +544,6 @@
             }, 3000);
         }
 
-        // Generate and display new address
         function generateNew() {
             const resultEl = document.getElementById('resultDisplay');
             const newAddress = generateRandomAddress();
@@ -656,7 +557,6 @@
             showStatus('สร้างที่อยู่ใหม่แล้ว! 🎲');
         }
 
-        // Auto generation toggle
         function toggleAutoGeneration() {
             const btn = document.getElementById('autoGenBtn');
             const statusSpan = document.getElementById('autoStatus');
@@ -678,28 +578,21 @@
             }
         }
 
-        // Clear all data
         function clearAllData() {
             if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลทั้งหมด?')) {
-                // Reset stats
                 stats = {
                     generateCount: 0,
                     copyCount: 0,
                     currentVariation: 'A1',
-                    obfuscationLevel: 'medium'
+                    obfuscationLevel: 'mode1'
                 };
                 
-                // Reset history
                 history = [];
-                
-                // Clear display
                 document.getElementById('resultDisplay').textContent = '';
-                
-                // Update UI
                 document.getElementById('generateCount').textContent = '0';
                 document.getElementById('copyCount').textContent = '0';
                 document.getElementById('currentVariation').textContent = 'A1';
-                document.getElementById('obfuscationLevel').textContent = '🟡';
+                document.getElementById('obfuscationLevel').textContent = '🔴';
                 document.getElementById('generationTime').textContent = '';
                 
                 updateHistoryDisplay();
@@ -707,7 +600,6 @@
             }
         }
 
-        // Event listeners
         document.getElementById('generateBtn').addEventListener('click', generateNew);
         document.getElementById('copyBtn').addEventListener('click', () => {
             const text = document.getElementById('resultDisplay').textContent;
@@ -719,23 +611,19 @@
         });
         document.getElementById('autoGenBtn').addEventListener('click', toggleAutoGeneration);
         document.getElementById('clearBtn').addEventListener('click', clearAllData);
-
-        // Settings change handlers
         document.getElementById('speedSelect').addEventListener('change', () => {
             if (autoInterval) {
-                toggleAutoGeneration(); // Turn off
-                toggleAutoGeneration(); // Turn on with new speed
+                toggleAutoGeneration();
+                toggleAutoGeneration();
             }
         });
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Enhanced Address Generator loaded!');
             initMatrixEffect();
             generateNew();
         });
 
-        // Backup generation
         setTimeout(() => {
             const resultEl = document.getElementById('resultDisplay');
             if (!resultEl.textContent.trim()) {
@@ -744,7 +632,6 @@
             }
         }, 1000);
 
-        // Handle window resize for matrix effect
         window.addEventListener('resize', () => {
             const canvas = document.getElementById('matrixCanvas');
             canvas.width = window.innerWidth;
