@@ -90,14 +90,6 @@
             background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
             border: 1px solid #4b5563;
         }
-        .typing-effect {
-            border-right: 2px solid #3b82f6;
-            animation: blink 1s infinite;
-        }
-        @keyframes blink {
-            0%, 50% { border-color: transparent; }
-            51%, 100% { border-color: #3b82f6; }
-        }
         .matrix-bg {
             position: fixed;
             top: 0;
@@ -122,9 +114,9 @@
                 เครื่องมือสร้างที่อยู่และเบอร์โทรศัพท์แบบสุ่มและพรางตัวขั้นสูง
             </p>
             <div class="flex flex-wrap justify-center gap-4 text-sm">
-                <span class="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full">🎲 สุ่มรูปแบบ 1000+ แบบ</span>
-                <span class="bg-green-600/20 text-green-300 px-3 py-1 rounded-full">🛡️ ป้องกันบอท AI</span>
-                <span class="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full">⚡ ทำงานแบบ Real-time</span>
+                <span class="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full">🛡️ หลบเลี่ยงบอท</span>
+                <span class="bg-green-600/20 text-green-300 px-3 py-1 rounded-full">👨‍💼 คนอ่านเข้าใจง่าย</span>
+                <span class="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full">💾 จดจำข้อมูล</span>
             </div>
         </div>
 
@@ -149,7 +141,7 @@
 
         <div class="result-box rounded-xl p-6 mb-6 relative">
             <div class="absolute top-4 right-4 text-xs text-gray-500" id="generationTime"></div>
-            <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-x-auto typing-effect"></pre>
+            <pre id="resultDisplay" class="mono-font text-green-400 text-sm md:text-base leading-relaxed whitespace-pre-wrap min-h-[150px] overflow-x-auto"></pre>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -169,32 +161,18 @@
 
         <div class="bg-gray-800 rounded-xl p-6 mb-6">
             <h3 class="text-xl font-bold mb-4 text-center">⚙️ การตั้งค่าขั้นสูง</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium mb-2">ระดับการพรางตัว</label>
                     <select id="obfuscationSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
-                        <option value="mode1" selected>🔴 โหมด A - พรางซ้อน</option>
-                        <option value="mode2">⚫ โหมด B - พรางหนักสุด</option>
+                        <option value="modeA" selected>🔴 โหมด A - พรางด้วยสัญลักษณ์</option>
+                        <option value="modeB">⚫ โหมด B - พรางผสมอักขระ</option>
                     </select>
+                    <p id="modeDescription" class="text-xs text-gray-400 mt-2 h-10"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">จำนวนบรรทัด</label>
-                    <select id="linesSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
-                        <option value="auto" selected>🎲 สุ่มอัตโนมัติ</option>
-                        <option value="2">2 บรรทัด</option>
-                        <option value="3">3 บรรทัด</option>
-                        <option value="4">4 บรรทัด</option>
-                        <option value="5">5 บรรทัด</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">ความเร็ว Auto</label>
-                    <select id="speedSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
-                        <option value="1000">⚡ เร็วมาก (1s)</option>
-                        <option value="2000">🚀 เร็ว (2s)</option>
-                        <option value="3000" selected>⏱️ ปกติ (3s)</option>
-                        <option value="5000">🐌 ช้า (5s)</option>
-                    </select>
+                    <label for="decoyData" class="block text-sm font-medium mb-2">ข้อมูลลวง (Decoy Data) - (1 ประโยคต่อบรรทัด)</label>
+                    <textarea id="decoyData" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm mono-font" placeholder="เช่น: **โทรแจ้งล่วงหน้า**&#10;บ้านอยู่ติด 7-11&#10;ประตูสีเขียว"></textarea>
                 </div>
             </div>
         </div>
@@ -210,7 +188,7 @@
     </div>
 
     <script>
-        // Enhanced Core Data
+        // Core Data
         const CORE_ADDRESS = {
             soi: "ลาดกระบัง16",
             village: "หมู่บ้านไทยสมุทร2",
@@ -221,18 +199,15 @@
             province: "สมุทรปราการ",
             postalCode: "10540"
         };
-        
         const CORE_PHONE = "0961408164";
 
-        // Statistics tracking
-        let stats = {
-            generateCount: 0,
-            copyCount: 0,
-            currentVariation: 'A1',
-            obfuscationLevel: 'mode1'
-        };
+        // UI Elements
+        const decoyDataTextarea = document.getElementById('decoyData');
+        const obfuscationSelect = document.getElementById('obfuscationSelect');
+        const modeDescription = document.getElementById('modeDescription');
 
-        // History tracking
+        // Statistics tracking
+        let stats = { generateCount: 0, copyCount: 0, currentVariation: 'A1', obfuscationLevel: 'modeA' };
         let history = [];
         let autoInterval = null;
 
@@ -240,228 +215,109 @@
         function initMatrixEffect() {
             const canvas = document.getElementById('matrixCanvas');
             const ctx = canvas.getContext('2d');
-            
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            
             const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
             const matrixArray = matrix.split("");
-            
             const fontSize = 10;
             const columns = canvas.width / fontSize;
-            const drops = [];
-            
-            for(let x = 0; x < columns; x++) {
-                drops[x] = 1;
-            }
+            const drops = Array(Math.floor(columns)).fill(1);
             
             function draw() {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
                 ctx.fillStyle = '#0F4';
                 ctx.font = fontSize + 'px monospace';
-                
-                for(let i = 0; i < drops.length; i++) {
+                for (let i = 0; i < drops.length; i++) {
                     const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    
-                    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                         drops[i] = 0;
                     }
                     drops[i]++;
                 }
             }
-            
             setInterval(draw, 35);
         }
 
-        // Enhanced Obfuscation Utilities
+        // Obfuscation Utilities
         const ObfuscationUtils = {
-            toThaiNumerals: (str) => {
-                const thaiNums = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
-                return str.replace(/[0-9]/g, (digit) => thaiNums[parseInt(digit)]);
-            },
-
-            toFullWidth: (str) => {
-                return str.replace(/[!-~]/g, (char) => {
-                    return String.fromCharCode(char.charCodeAt(0) + 0xFEE0);
-                });
-            },
-
-            addZeroWidthSpaces: (str) => {
-                const level = document.getElementById('obfuscationSelect').value;
-                if (level === 'mode1' && Math.random() < 0.75) {
-                    return str.split('').join('\u200B');
-                }
-                return str;
-            },
-            
-            injectSpecialCharacters: (str) => {
-                const symbols = ['.', ',', '?', '!', '@', '&', '฿', '(', ')', '{', '}', '[', ']', '%', '^', '+', '=', '|', '/', '\\'];
-                let result = '';
-                for (const char of str) {
-                    result += char;
-                    if (char !== ' ' && Math.random() < 0.95) { // High chance to inject
-                        result += symbols[Math.floor(Math.random() * symbols.length)];
-                    }
-                }
-                return result;
-            },
-
-            formatNumber: (num) => {
-                const level = document.getElementById('obfuscationSelect').value;
-                if (level === 'mode1') {
-                     // Mode A: Focus on Thai numerals and full-width
-                    const formats = [
-                        ObfuscationUtils.toThaiNumerals(num),
-                        ObfuscationUtils.toFullWidth(num),
-                        ObfuscationUtils.toThaiNumerals(num.replace(/\//, '-')),
-                        ObfuscationUtils.toFullWidth(num.replace(/\//, ' / '))
-                    ];
-                    return formats[Math.floor(Math.random() * formats.length)];
-                } 
-                if (level === 'mode2') {
-                    // Mode B: Heavy symbol injection
-                    return ObfuscationUtils.injectSpecialCharacters(num);
-                }
-                return num; // Fallback
-            },
-
-            formatPhone: (phone) => {
-                const level = document.getElementById('obfuscationSelect').value;
-                if (level === 'mode1') {
-                    // Mode A: Thai numerals, full-width, and varied formats
-                    const formats = [
-                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3'),
-                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3'),
-                        phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
-                    ];
-                    let formatted = formats[Math.floor(Math.random() * formats.length)];
-                    if (Math.random() < 0.75) {
-                        formatted = ObfuscationUtils.toThaiNumerals(formatted);
-                    }
-                     if (Math.random() < 0.75) {
-                        formatted = ObfuscationUtils.toFullWidth(formatted);
-                    }
-                    return formatted;
-                }
-                if (level === 'mode2') {
-                     // Mode B: Heavy symbol injection
-                    return ObfuscationUtils.injectSpecialCharacters(phone);
-                }
-                return phone; // Fallback
-            },
-
-            generateVariationCode: () => {
-                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                const numbers = '0123456789';
-                return letters[Math.floor(Math.random() * letters.length)] + 
-                       numbers[Math.floor(Math.random() * numbers.length)];
-            }
+            toThaiNumerals: (str) => str.replace(/[0-9]/g, (d) => '๐๑๒๓๔๕๖๗๘๙'[d]),
+            toFullWidth: (str) => str.replace(/[!-~]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xFEE0)),
+            addZeroWidthSpaces: (str) => str.split('').join('\u200B'),
+            generateVariationCode: () => `${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)]}${'0123456789'[Math.floor(Math.random()*10)]}`
         };
 
-        const Labels = {
-            soi: ['ซ.', 'ซอย', 'Soi', 'S.', '🛣️', ''],
-            village: ['หมู่บ้าน', 'หมู่บ้าน:', 'Village', 'V.', 'หมู่บ้าน :', '🏘️', ''],
-            house: ['บ้านเลขที่', 'เลขที่', 'บ้าน', 'House No.', 'No.', 'H.', '#', '🏠', ''],
-            road: ['ถ.', 'ถนน', 'Road', 'Rd.', 'R.', '🛤️', ''],
-            subdistrict: ['ต.', 'ตำบล', 'T.', 'Sub-district', 'Tambon', '📍', ''],
-            district: ['อ.', 'อำเภอ', 'A.', 'District', 'Amphoe', '🏛️', ''],
-            province: ['จ.', 'จังหวัด', 'Province', 'P.', 'Changwat', '🗺️', ''],
-            phone: ['โทร', 'Tel', 'Phone', 'เบอร์', 'ติดต่อ', 'Call', 'Mobile', '📞', '☎️', '📱', '']
-        };
-
-        const Symbols = ['::', '->', '|', '>>', ':', ' - ', ' > ', ' . '];
-
+        // Main Address Generation Logic
         function generateRandomAddress() {
             const startTime = Date.now();
-            const level = document.getElementById('obfuscationSelect').value;
-            const resultParts = [];
-            
+            const mode = obfuscationSelect.value;
+            let parts = [];
+
             const components = [
-                { type: 'house', value: CORE_ADDRESS.houseNumber, label: Labels.house, required: true },
-                { type: 'phone', value: CORE_PHONE, label: Labels.phone, required: true },
-                { type: 'soi', value: CORE_ADDRESS.soi, label: Labels.soi, required: false },
-                { type: 'village', value: CORE_ADDRESS.village, label: Labels.village, required: false },
-                { type: 'road', value: CORE_ADDRESS.road, label: Labels.road, required: false },
-                { type: 'subdistrict', value: CORE_ADDRESS.subdistrict, label: Labels.subdistrict, required: false },
-                { type: 'district', value: CORE_ADDRESS.district, label: Labels.district, required: false },
-                { type: 'province', value: CORE_ADDRESS.province, label: Labels.province, required: false },
-                { type: 'postal', value: CORE_ADDRESS.postalCode, label: ['รหัสไปรษณีย์', ''], required: false }
-            ];
+                { type: 'house', value: CORE_ADDRESS.houseNumber, label: ['บ้านเลขที่', 'เลขที่', 'No.'] },
+                { type: 'phone', value: CORE_PHONE, label: ['โทร', 'Tel', 'เบอร์ติดต่อ'] },
+                { type: 'soi', value: CORE_ADDRESS.soi, label: ['ซ.', 'ซอย'] },
+                { type: 'village', value: CORE_ADDRESS.village, label: ['หมู่บ้าน', 'ม.'] },
+                { type: 'road', value: CORE_ADDRESS.road, label: ['ถ.', 'ถนน'] },
+                { type: 'subdistrict', value: CORE_ADDRESS.subdistrict, label: ['ต.', 'ตำบล'] },
+                { type: 'district', value: CORE_ADDRESS.district, label: ['อ.', 'อำเภอ'] },
+                { type: 'province', value: CORE_ADDRESS.province, label: ['จ.', 'จังหวัด'] },
+                { type: 'postal', value: CORE_ADDRESS.postalCode, label: ['รหัสไปรษณีย์', ''] }
+            ].sort(() => Math.random() - 0.5);
 
-            const shuffledComponents = components.sort(() => Math.random() - 0.5);
-            
-            for (const comp of shuffledComponents) {
-                const symbol = Math.random() < 0.3 ? Symbols[Math.floor(Math.random() * Symbols.length)] : ' ';
-                const showLabel = comp.required || Math.random() < 0.7;
-                const randomLabel = comp.label[Math.floor(Math.random() * comp.label.length)].replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/ug, '').trim();
-
-                let rawValue = comp.value;
-                if(comp.type === 'house') rawValue = ObfuscationUtils.formatNumber(comp.value);
-                if(comp.type === 'phone') rawValue = ObfuscationUtils.formatPhone(comp.value);
-                if(comp.type === 'postal' && level === 'mode1') rawValue = ObfuscationUtils.toThaiNumerals(comp.value);
-                if(comp.type === 'postal' && level === 'mode2') rawValue = ObfuscationUtils.injectSpecialCharacters(comp.value);
-                
-                let formattedPart = (randomLabel && showLabel) ? `${randomLabel}${symbol}${rawValue}` : rawValue;
-                
-                // Apply final layer of obfuscation based on mode
-                if (level === 'mode1') {
-                    formattedPart = ObfuscationUtils.addZeroWidthSpaces(formattedPart);
-                } else if (level === 'mode2') {
-                    // In mode2, symbol injection on text part happens here to avoid double-injection on numbers/phone
-                    if (!['house', 'phone', 'postal'].includes(comp.type)) {
-                        formattedPart = ObfuscationUtils.injectSpecialCharacters(formattedPart);
+            components.forEach(comp => {
+                let value = comp.value;
+                if (mode === 'modeB') {
+                    // Mode B: Mix character types
+                    if (['house', 'phone', 'postal'].includes(comp.type)) {
+                        if (Math.random() < 0.5) value = ObfuscationUtils.toThaiNumerals(value);
+                        if (Math.random() < 0.5) value = ObfuscationUtils.toFullWidth(value);
                     }
+                    if (Math.random() < 0.3) value = ObfuscationUtils.addZeroWidthSpaces(value);
                 }
                 
-                resultParts.push(formattedPart);
+                let part = `${comp.label[Math.floor(Math.random() * comp.label.length)]} ${value}`;
+
+                if (mode === 'modeA') {
+                    // Mode A: Wrap with symbols
+                    const wrappers = [['(', ')'], ['[', ']'], ['{', '}'], ['*', '*'], ['--', '--']];
+                    const chosenWrapper = wrappers[Math.floor(Math.random() * wrappers.length)];
+                    part = `${chosenWrapper[0]}${comp.label[Math.floor(Math.random() * comp.label.length)]}: ${value}${chosenWrapper[1]}`;
+                }
+                parts.push(part);
+            });
+            
+            let finalResult;
+            if (mode === 'modeA') {
+                const separators = [' | ', ' :: ', ' >> ', ' | ', ' -- '];
+                finalResult = parts.join(separators[Math.floor(Math.random() * separators.length)]);
+            } else {
+                finalResult = parts.join(', ');
             }
 
-            const separators = [', ', ' | ', '  ', '. ', ' - '];
-            let singleLineResult = resultParts.join(separators[Math.floor(Math.random() * separators.length)]);
-
-            const compositeChance = {
-                'mode1': 0.40,
-                'mode2': 0.80
-            }[level];
-
-            if (Math.random() < compositeChance) {
-                const phrases = [
-                    `กรุณาส่งพัสดุมาที่: ${singleLineResult} -- ขอบคุณครับ/ค่ะ`,
-                    `ข้อมูลผู้รับพัสดุ -> ${singleLineResult} (ยืนยันข้อมูล)`,
-                    `ที่อยู่สำหรับจัดส่ง: ${singleLineResult} // รับได้ทุกวัน 9-18 น.`,
-                    `ข้อมูลที่อยู่จัดส่ง: ${singleLineResult} <กรุณาโทรก่อนส่ง>`,
-                    `ที่อยู่ปลายทาง: ${singleLineResult} (ติดต่อได้ตลอด)`,
-                    `ข้อมูลการจัดส่ง: ${singleLineResult} ++จัดส่งด่วนพิเศษ++`,
-                    `รายละเอียดผู้รับ: ${singleLineResult} --สำคัญมาก--`,
-                    `ยืนยันที่อยู่ผู้รับ: ${singleLineResult} | โทรแจ้งล่วงหน้าได้`,
-                    `Package Destination: ${singleLineResult} // Please call before delivery.`,
-                    `[ข้อมูลลับ] ที่อยู่: ${singleLineResult} (สำหรับเจ้าหน้าที่เท่านั้น)`
-                ];
-                const finalResult = phrases[Math.floor(Math.random() * phrases.length)];
-                updateStats(startTime, finalResult);
-                return finalResult;
+            // Add Decoy Data
+            const decoyLines = decoyDataTextarea.value.split('\n').filter(line => line.trim() !== '');
+            if (decoyLines.length > 0 && Math.random() < 0.6) {
+                const randomDecoy = decoyLines[Math.floor(Math.random() * decoyLines.length)];
+                finalResult += ` ${randomDecoy}`;
             }
 
-            const finalResult = singleLineResult;
             updateStats(startTime, finalResult);
             return finalResult;
         }
 
+        // --- Helper & UI Functions ---
+
         function updateStats(startTime, result) {
             stats.generateCount++;
             stats.currentVariation = ObfuscationUtils.generateVariationCode();
-            stats.obfuscationLevel = document.getElementById('obfuscationSelect').value;
+            stats.obfuscationLevel = obfuscationSelect.value;
             
             document.getElementById('generateCount').textContent = stats.generateCount;
             document.getElementById('currentVariation').textContent = stats.currentVariation;
             
-            const levelEmojis = {
-                'mode1': '🔴',
-                'mode2': '⚫'
-            };
+            const levelEmojis = { 'modeA': '🔴', 'modeB': '⚫' };
             document.getElementById('obfuscationLevel').textContent = levelEmojis[stats.obfuscationLevel];
             
             const generationTime = Date.now() - startTime;
@@ -472,35 +328,24 @@
 
         function addToHistory(result) {
             const timestamp = new Date().toLocaleTimeString('th-TH');
-            history.unshift({
-                id: Date.now(),
-                content: result,
-                timestamp: timestamp,
-                variation: stats.currentVariation
-            });
-            
-            if (history.length > 5) {
-                history = history.slice(0, 5);
-            }
-            
+            history.unshift({ id: Date.now(), content: result, timestamp, variation: stats.currentVariation });
+            if (history.length > 5) history = history.slice(0, 5);
             updateHistoryDisplay();
         }
 
         function updateHistoryDisplay() {
             const container = document.getElementById('historyContainer');
-            
             if (history.length === 0) {
                 container.innerHTML = '<div class="text-center text-gray-500 text-sm">ยังไม่มีประวัติ</div>';
                 return;
             }
-            
-            container.innerHTML = history.map((item) => `
+            container.innerHTML = history.map(item => `
                 <div class="bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-600 transition-colors" onclick="loadFromHistory(${item.id})">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-xs text-blue-400">#${item.variation}</span>
                         <span class="text-xs text-gray-400">${item.timestamp}</span>
                     </div>
-                    <div class="text-sm text-gray-300 truncate mono-font">${item.content}...</div>
+                    <div class="text-sm text-gray-300 truncate mono-font">${item.content}</div>
                 </div>
             `).join('');
         }
@@ -508,135 +353,114 @@
         function loadFromHistory(id) {
             const item = history.find(h => h.id === id);
             if (item) {
-                const resultEl = document.getElementById('resultDisplay');
-                resultEl.textContent = item.content;
-                resultEl.classList.add('fade-in');
+                document.getElementById('resultDisplay').textContent = item.content;
                 showStatus(`โหลดจากประวัติ #${item.variation} เรียบร้อย! 📚`);
             }
         }
 
         async function copyToClipboard(text) {
+            if (!text) {
+                showStatus('ไม่มีข้อมูลให้คัดลอก');
+                return;
+            }
             try {
                 await navigator.clipboard.writeText(text);
                 stats.copyCount++;
                 document.getElementById('copyCount').textContent = stats.copyCount;
                 showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
             } catch (err) {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                stats.copyCount++;
-                document.getElementById('copyCount').textContent = stats.copyCount;
-                showStatus('คัดลอกเรียบร้อยแล้ว! ✅', 'success');
+                showStatus('การคัดลอกล้มเหลว', 'error');
             }
         }
 
         function showStatus(message, type = 'info') {
             const statusEl = document.getElementById('statusMessage');
+            const colors = { success: 'text-green-400', error: 'text-red-400', info: 'text-gray-500' };
             statusEl.textContent = message;
-            statusEl.className = `text-center mt-4 text-sm ${type === 'success' ? 'text-green-400' : 'text-gray-500'}`;
-            
-            setTimeout(() => {
-                statusEl.textContent = '';
-            }, 3000);
+            statusEl.className = `text-center mt-4 text-sm ${colors[type] || colors.info}`;
+            setTimeout(() => statusEl.textContent = '', 3000);
         }
 
         function generateNew() {
             const resultEl = document.getElementById('resultDisplay');
             const newAddress = generateRandomAddress();
-            
             resultEl.classList.remove('fade-in');
-            setTimeout(() => {
-                resultEl.textContent = newAddress;
-                resultEl.classList.add('fade-in');
-            }, 100);
-            
+            void resultEl.offsetWidth; // Trigger reflow
+            resultEl.textContent = newAddress;
+            resultEl.classList.add('fade-in');
             showStatus('สร้างที่อยู่ใหม่แล้ว! 🎲');
         }
 
         function toggleAutoGeneration() {
             const btn = document.getElementById('autoGenBtn');
             const statusSpan = document.getElementById('autoStatus');
-            
             if (autoInterval) {
                 clearInterval(autoInterval);
                 autoInterval = null;
-                btn.classList.remove('btn-accent');
-                btn.classList.add('btn-primary');
+                btn.classList.replace('btn-primary', 'btn-accent');
                 statusSpan.textContent = 'OFF';
                 showStatus('ปิด Auto Generation แล้ว 🛑');
             } else {
-                const speed = parseInt(document.getElementById('speedSelect').value);
+                const speed = 3000; // Fixed speed for simplicity
                 autoInterval = setInterval(generateNew, speed);
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-accent');
+                btn.classList.replace('btn-accent', 'btn-primary');
                 statusSpan.textContent = 'ON';
-                showStatus(`เปิด Auto Generation แล้ว ⚡ (${speed/1000}s)`);
+                showStatus(`เปิด Auto Generation แล้ว ⚡ (3s)`);
             }
         }
-
+        
         function clearAllData() {
-            if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลทั้งหมด?')) {
-                stats = {
-                    generateCount: 0,
-                    copyCount: 0,
-                    currentVariation: 'A1',
-                    obfuscationLevel: 'mode1'
-                };
-                
+            if (confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลสถิติและประวัติทั้งหมด? (ข้อมูลลวงที่คุณกรอกไว้จะไม่ถูกลบ)')) {
+                stats.generateCount = 0;
+                stats.copyCount = 0;
                 history = [];
                 document.getElementById('resultDisplay').textContent = '';
                 document.getElementById('generateCount').textContent = '0';
                 document.getElementById('copyCount').textContent = '0';
-                document.getElementById('currentVariation').textContent = 'A1';
-                document.getElementById('obfuscationLevel').textContent = '🔴';
                 document.getElementById('generationTime').textContent = '';
-                
                 updateHistoryDisplay();
-                showStatus('ล้างข้อมูลทั้งหมดเรียบร้อย! 🗑️', 'success');
+                showStatus('ล้างข้อมูลสถิติและประวัติเรียบร้อย! 🗑️', 'success');
             }
         }
 
-        document.getElementById('generateBtn').addEventListener('click', generateNew);
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            const text = document.getElementById('resultDisplay').textContent;
-            if (text.trim()) {
-                copyToClipboard(text);
-            } else {
-                showStatus('ไม่มีข้อมูลให้คัดลอก');
-            }
-        });
-        document.getElementById('autoGenBtn').addEventListener('click', toggleAutoGeneration);
-        document.getElementById('clearBtn').addEventListener('click', clearAllData);
-        document.getElementById('speedSelect').addEventListener('change', () => {
-            if (autoInterval) {
-                toggleAutoGeneration();
-                toggleAutoGeneration();
-            }
-        });
+        function updateModeDescription() {
+            const descriptions = {
+                modeA: 'คำแนะนำ: โหมดนี้จะใช้สัญลักษณ์ () [] | เพื่อจัดกลุ่มข้อมูล เหมาะสำหรับหลบเลี่ยงบอทที่เข้มงวด',
+                modeB: 'คำแนะนำ: โหมดนี้จะผสมรูปแบบตัวเลขและอักษร (เลขไทย, ตัวเต็ม) เพื่อสร้างความไม่สม่ำเสมอ'
+            };
+            modeDescription.textContent = descriptions[obfuscationSelect.value];
+        }
+
+        // --- Event Listeners & Initialization ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Enhanced Address Generator loaded!');
             initMatrixEffect();
+            
+            // Load decoy data from localStorage
+            const savedDecoys = localStorage.getItem('userDecoyData');
+            if (savedDecoys) {
+                decoyDataTextarea.value = savedDecoys;
+            }
+
+            updateModeDescription();
             generateNew();
         });
 
-        setTimeout(() => {
-            const resultEl = document.getElementById('resultDisplay');
-            if (!resultEl.textContent.trim()) {
-                console.log('Backup generation triggered');
-                generateNew();
-            }
-        }, 1000);
-
-        window.addEventListener('resize', () => {
-            const canvas = document.getElementById('matrixCanvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        obfuscationSelect.addEventListener('change', () => {
+            updateModeDescription();
+            generateNew();
         });
+        
+        decoyDataTextarea.addEventListener('input', () => {
+            localStorage.setItem('userDecoyData', decoyDataTextarea.value);
+        });
+
+        document.getElementById('generateBtn').addEventListener('click', generateNew);
+        document.getElementById('copyBtn').addEventListener('click', () => copyToClipboard(document.getElementById('resultDisplay').textContent));
+        document.getElementById('autoGenBtn').addEventListener('click', toggleAutoGeneration);
+        document.getElementById('clearBtn').addEventListener('click', clearAllData);
+        
+        window.addEventListener('resize', initMatrixEffect);
     </script>
 </body>
 </html>
