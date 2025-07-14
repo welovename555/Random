@@ -474,22 +474,21 @@
             });
         }
 
-        // --- NEW: IP & VPN Info Function ---
+        // --- IP & VPN Info Function ---
         async function fetchIpInfo() {
             const ipEl = document.getElementById('ipAddress');
             const locationEl = document.getElementById('ipLocation');
             const vpnEl = document.getElementById('vpnStatus');
 
             try {
-                // Use a free API to get IP info. Request specific fields to be efficient.
-                const response = await fetch('http://ip-api.com/json?fields=status,message,country,city,query,proxy,hosting');
+                // CORRECTED: Use HTTPS for secure connection
+                const response = await fetch('https://ip-api.com/json?fields=status,message,country,city,query,proxy,hosting');
                 const data = await response.json();
 
                 if (data.status === 'success') {
                     ipEl.textContent = data.query;
                     locationEl.textContent = `${data.city || 'ไม่ระบุเมือง'}, ${data.country || 'ไม่ระบุประเทศ'}`;
                     
-                    // VPN/Proxy detection logic
                     if (data.proxy || data.hosting) {
                         vpnEl.textContent = 'ตรวจพบ (น่าจะใช้งาน)';
                         vpnEl.className = 'text-yellow-400';
@@ -529,8 +528,8 @@
             });
 
             initMatrixEffect();
-            generateNew(); // Generate first address on load
-            fetchIpInfo(); // Fetch IP info on load
+            generateNew();
+            fetchIpInfo();
         });
     </script>
 </body>
