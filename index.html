@@ -225,14 +225,13 @@
 
         // --- ENHANCED OBFUSCATION UTILITIES ---
         const ObfuscationUtils = {
-            // NEW: Punctuation for injection
-            Punctuation: ['.', ',', '?', '!', '‘', '-', '_'],
+            // NEW: Punctuation for injection (MODIFIED AS PER USER REQUEST)
+            Punctuation: ['.', ',', '/', '|', '‘', '-', '_'],
 
             toThaiNumerals: (str) => str.replace(/[0-9]/g, (d) => '๐๑๒๓๔๕๖๗๘๙'[d]),
             toFullWidth: (str) => str.replace(/[!-~]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xFEE0)),
             addZeroWidthSpaces: (str) => str.split('').join('\u200B'),
             
-            // NEW: Function to inject punctuation inside strings
             injectPunctuation: (str) => {
                 const level = document.getElementById('obfuscationSelect').value;
                 const chance = { low: 0, medium: 0.05, high: 0.15, extreme: 0.3 }[level];
@@ -320,7 +319,6 @@
 
             // 3. Format each chosen component
             const formattedParts = componentsToUse.map(comp => {
-                // NEW: Inject punctuation into the value based on obfuscation level
                 const obfuscatedValue = ObfuscationUtils.injectPunctuation(comp.value);
                 
                 const label = comp.labelPool[Math.floor(Math.random() * comp.labelPool.length)];
@@ -450,7 +448,6 @@
             resultEl.classList.remove('fade-in');
             const newAddress = generateRandomAddress();
             
-            // Short delay for animation effect
             setTimeout(() => {
                 resultEl.textContent = newAddress;
                 resultEl.classList.add('fade-in');
@@ -492,7 +489,6 @@
             showStatus('ล้างข้อมูลทั้งหมดเรียบร้อย! 🗑️', 'success');
         }
         
-        // --- MATRIX BACKGROUND ---
         function initMatrixEffect() {
             const canvas = document.getElementById('matrixCanvas');
             if(!canvas) return;
@@ -544,14 +540,14 @@
             document.getElementById('clearBtn').addEventListener('click', clearAllData);
 
             document.getElementById('speedSelect').addEventListener('change', () => {
-                if (autoInterval) { // If auto is on, restart it with the new speed
-                    toggleAutoGeneration(); // stop
-                    toggleAutoGeneration(); // start
+                if (autoInterval) {
+                    toggleAutoGeneration();
+                    toggleAutoGeneration();
                 }
             });
 
             initMatrixEffect();
-            generateNew(); // Generate first address on load
+            generateNew();
         });
     </script>
 </body>
