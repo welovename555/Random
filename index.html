@@ -216,12 +216,10 @@
                 postalCode: "12000"
             }
         };
-
         const PHONES = {
             home: "0961408164",
             alt1: "0946401569"
         };
-
         let CURRENT_ADDRESS_KEY = 'home';  // default
 
         // ให้ event listener ทำงานหลัง DOM โหลดเสร็จ
@@ -248,6 +246,43 @@
             province: ['จังหวัด', 'จ.', 'Province', 'Prov.', ''],
             postal: ['รหัสไปรษณีย์', 'รหัสไปรษณีย์ที่', 'รหัส', 'Zip Code', 'Postcode', 'Postal Code', '']
         };
+
+        // --- FUZZY LABELS (ADDED) ---
+        const FuzzyLabels = {
+            house: [
+                'บ้านเลขที่', 'บ้านเลๅที่', 'บ้านเลซที่', 'บ้านเล-ที่',
+                'บ้านเxขที่', 'บ้าuเลขที่', 'บๅuเลขที่', 'บ้านlขที่'
+            ],
+            phone: [
+                'โทรศัพท์', 'โทsัพท์', 'โทรsัsท์', 'โทรศัพ', 'โทpศัพ',
+                'โทpsัn์', 'โทรsับ', 'โทรsัp', 'โทpศัพท', 'โทรศัwท์'
+            ],
+            soi: [
+                'ซอย', 'ซoย', 'ซxย', 'ซxย์', 'ซxi', 'ซ0ย', 'ซอe', 'ซอY'
+            ],
+            village: [
+                'หมู่บ้าน', 'หมู่บาu', 'หมู่บ้าu', 'หมู่บ้าu', 'หมู่baน',
+                'หมูvบาu', 'หมู่Bาn', 'หม่ๅบ้าน'
+            ],
+            road: [
+                'ถนน', 'ถuน', 'ถuu', 'ถuv', 'ถvน', 'ถนน์', 'ถuu', 'ถนนv'
+            ],
+            subdistrict: [
+                'ตำบล', 'ตำบu', 'ตําบล', 'ตำบ๑', 'ตxบล', 'ตาํบล', 'ตบuล', 'ตบล'
+            ],
+            district: [
+                'อำเภอ', 'อำpอ', 'อำเๅอ', 'อําเภo', 'อำเๅๅ', 'อํๅเภo', 'อำเภx'
+            ],
+            province: [
+                'จังหวัด', 'จังหว้ด', 'จัnหวัด', 'จัJหวัด', 'จังหวัๅ', 'จังหวัn',
+                'จัJหวัๅ', 'จังหวัd', 'จังwhัด'
+            ],
+            postal: [
+                'รหัสไปรษณีย์', 'รหัสไปรษณีย์์', 'รหัสไปsษณีย์', 'รหัnไปรษณีย์',
+                'รหัสไปrnษณีย์', 'รหัสไpรษณีย์', 'รหัsไปรษณีy์', 'รหัสไปรษณีt'
+            ]
+        };
+
         const Separators = [', ', ' ', '. ', ' - '];
 
         // --- ENHANCED OBFUSCATION UTILITIES ---
@@ -340,12 +375,7 @@
                 : selectedAddress.postalCode;
 
             const allComponents = [
-                {
-                    type: 'house',
-                    value: `<mark class="house-highlight">${ObfuscationUtils.formatNumber(selectedAddress.houseNumber)}</mark>`,
-                    labelPool: Labels.house,
-                    required: true
-                },
+                { type: 'house', value: `<mark class="house-highlight">${ObfuscationUtils.formatNumber(selectedAddress.houseNumber)}</mark>`, labelPool: Labels.house, required: true },
                 { type: 'phone', value: ObfuscationUtils.formatPhone(selectedPhone), labelPool: Labels.phone, required: true },
                 { type: 'soi', value: selectedAddress.soi, labelPool: Labels.soi },
                 { type: 'village', value: selectedAddress.village, labelPool: Labels.village },
@@ -355,32 +385,52 @@
                 { type: 'province', value: selectedAddress.province, labelPool: Labels.province },
                 { type: 'postal', value: postal, labelPool: Labels.postal }
             ];
+
             const required = allComponents.filter(c => c.required);
             const optional = allComponents.filter(c => !c.required);
+
             const numOptionalToUse = Math.floor(Math.random() * (optional.length - 3)) + 3;
             const shuffledOptional = optional.sort(() => 0.5 - Math.random());
             const componentsToUse = [...required, ...shuffledOptional.slice(0, numOptionalToUse)].sort(() => 0.5 - Math.random());
+
             const formattedParts = componentsToUse.map(comp => {
+                // --- FUZZY LABEL INTEGRATION (MODIFIED) ---
+                let label;
+                // Randomly decide whether to use a fuzzy label (30-50% chance, here using 40%)
+                const useFuzzy = Math.random() < 0.4; 
+                if (useFuzzy && FuzzyLabels[comp.type] && FuzzyLabels[comp.type].length > 0) {
+                    // Pick a random fuzzy label
+                    label = FuzzyLabels[comp.type][Math.floor(Math.random() * FuzzyLabels[comp.type].length)];
+                } else {
+                    // Fallback to the original label pool
+                    label = comp.labelPool[Math.floor(Math.random() * comp.labelPool.length)];
+                }
+                // --- END FUZZY LABEL INTEGRATION ---
+
+                const showLabel = label && (comp.required || Math.random() > 0.3);
+
                 // บ้านเลขที่ไม่ obfuscate เพิ่ม
                 if (comp.type === 'house') {
-                    const label = comp.labelPool[Math.floor(Math.random() * comp.labelPool.length)];
-                    const showLabel = label && (comp.required || Math.random() > 0.3);
                     let part = showLabel ? `${label} ${comp.value}` : comp.value;
                     return part.trim();
                 }
+
+                // Logic for other components remains the same, just using the new `label` variable.
                 const obfuscatedValue = ObfuscationUtils.injectPunctuation(comp.value);
-                const label = comp.labelPool[Math.floor(Math.random() * comp.labelPool.length)];
-                const showLabel = label && (comp.required || Math.random() > 0.3);
                 let part = showLabel ? `${label} ${obfuscatedValue}` : obfuscatedValue;
+                
                 if (level === 'extreme' && Math.random() < 0.5) return ObfuscationUtils.addZeroWidthSpaces(part);
                 if (level === 'high' && Math.random() < 0.3) return ObfuscationUtils.addZeroWidthSpaces(part);
+                
                 return part.trim();
             });
+
 
             // จำนวนบรรทัด
             let lineOption = document.getElementById('linesSelect').value;
             let numLines = lineOption === 'auto' ? Math.floor(Math.random() * 4) + 1 : parseInt(lineOption);
             if(numLines > formattedParts.length) numLines = formattedParts.length;
+
             let finalResult;
             if (numLines === 1) {
                 finalResult = formattedParts.join(Separators[Math.floor(Math.random() * Separators.length)]);
@@ -406,6 +456,7 @@
                 ];
                 finalResult = wrappers[Math.floor(Math.random() * wrappers.length)];
             }
+
             updateStats(startTime, finalResult);
             return finalResult;
         }
@@ -421,11 +472,13 @@
             document.getElementById('generationTime').textContent = `Generated in ${Date.now() - startTime}ms`;
             addToHistory(result, variation);
         }
+
         function addToHistory(result, variation) {
             history.unshift({ id: Date.now(), content: result, timestamp: new Date().toLocaleTimeString('th-TH'), variation: variation });
             if (history.length > 5) history.pop();
             updateHistoryDisplay();
         }
+
         function updateHistoryDisplay() {
             const container = document.getElementById('historyContainer');
             if (history.length === 0) {
@@ -442,6 +495,7 @@
                 </div>
             `).join('');
         }
+
         function loadFromHistory(id) {
             const item = history.find(h => h.id === id);
             if (item) {
@@ -450,6 +504,7 @@
                 showStatus(`โหลดจากประวัติ #${item.variation} เรียบร้อย! 📚`);
             }
         }
+
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
@@ -460,6 +515,7 @@
                 showStatus('การคัดลอกล้มเหลว', 'error');
             }
         }
+
         function showStatus(message, type = 'info') {
             const statusEl = document.getElementById('statusMessage');
             const colors = { success: 'text-green-400', error: 'text-red-400', info: 'text-gray-500' };
@@ -467,18 +523,21 @@
             statusEl.className = `text-center mt-4 text-sm ${colors[type]}`;
             setTimeout(() => { statusEl.textContent = ''; }, 3000);
         }
+
         function generateNew() {
             const resultEl = document.getElementById('resultDisplay');
             resultEl.classList.remove('fade-in');
             let newAddress = generateRandomAddress();
             // แก้ไขตรงนี้: แทนที่ \n ด้วย <br>
-            newAddress = newAddress.replace(/\n/g, '  '); // เว้นวรรคแทนขึ้นบรรทัดใหม่
+            newAddress = newAddress.replace(/\n/g, '  ');
+            // เว้นวรรคแทนขึ้นบรรทัดใหม่
             setTimeout(() => {
                 resultEl.innerHTML = newAddress;
                 resultEl.classList.add('fade-in');
             }, 50);
             showStatus('สร้างที่อยู่ใหม่แล้ว! 🎲');
         }
+
         function clearAllData() {
             if (!confirm('คุณแน่ใจหรือไม่ที่จะล้างข้อมูลสถิติและประวัติทั้งหมด?')) return;
             stats = { generateCount: 0, copyCount: 0 };
@@ -491,6 +550,7 @@
             updateHistoryDisplay();
             showStatus('ล้างข้อมูลทั้งหมดเรียบร้อย! 🗑️', 'success');
         }
+
         function initMatrixEffect() {
             const canvas = document.getElementById('matrixCanvas');
             if(!canvas) return;
@@ -504,6 +564,7 @@
             const fontSize = 12;
             const columns = canvas.width / fontSize;
             const drops = Array.from({ length: Math.ceil(columns) }).fill(1);
+
             function draw() {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -519,6 +580,7 @@
                 }
             }
             const matrixInterval = setInterval(draw, 40);
+
             window.addEventListener('resize', () => {
                 setCanvasSize();
                 drops.length = Math.ceil(window.innerWidth / fontSize);
